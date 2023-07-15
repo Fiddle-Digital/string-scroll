@@ -1,0 +1,38 @@
+{
+  "name": "@fiddle.digital/string-scroll",
+  "version": "0.0.1",
+  "description": "String scroll — smooth scrolling using css parameters",
+  "keywords": [
+    "scroll",
+    "smooth",
+    "css",
+    "string",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fiddle-Digital/string-scroll"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "minify": "terser dist/index.js -o dist/index.js"
+  },
+  "authors": [
+    {
+      "name": "Dmitro Troshchylo"
+    },
+    {
+      "name": "Thomas Burleson",
+      "email": "penev.vladislav@gmail.com",
+      "url": "https://github.com/penev-palemiya"
+    }
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.4.2",
+    "terser": "^5.19.0",
+    "typescript": "^5.1.6"
+  }
+}
