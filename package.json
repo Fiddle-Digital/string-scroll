@@ -1,6 +1,6 @@
 {
   "name": "@fiddle.digital/string-scroll",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "String scroll — smooth scrolling using css parameters",
   "keywords": [
     "scroll",
@@ -14,9 +14,10 @@
     "url": "https://github.com/Fiddle-Digital/string-scroll"
   },
   "main": "./dist/index.js",
+  "module": "dist/index.esm.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "webpack",
     "minify": "terser dist/index.js -o dist/index.js"
   },
   "authors": [
@@ -24,15 +25,22 @@
       "name": "Dmitro Troshchylo"
     },
     {
-      "name": "Thomas Burleson",
+      "name": "Penev Vladislav",
       "email": "penev.vladislav@gmail.com",
       "url": "https://github.com/penev-palemiya"
     }
   ],
   "license": "MIT",
   "devDependencies": {
+    "@babel/cli": "^7.22.9",
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "@babel/preset-typescript": "^7.22.5",
     "@types/node": "^20.4.2",
     "terser": "^5.19.0",
-    "typescript": "^5.1.6"
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
   }
 }
