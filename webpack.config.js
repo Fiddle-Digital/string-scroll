@@ -46,5 +46,31 @@ module.exports = [
       outputModule: true,
     },
     target: ['web', 'browserslist: > 0.5%, not dead']
+  },
+  {
+    entry: './src/index.ts',
+    mode: 'production',
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.ts', '.js', '.mjs'],
+    },
+    output: {
+      filename: 'index.mjs',
+      path: path.resolve(__dirname, 'dist'),
+      libraryTarget: 'module'
+    },
+    experiments: {
+      outputModule: true,
+    },
+    target: ['web', 'browserslist: > 0.5%, not dead']
   }
+
 ];

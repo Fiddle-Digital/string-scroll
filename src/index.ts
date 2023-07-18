@@ -1,3 +1,5 @@
+
+
 var d: any = null
 var w: any = null
 function parseOffset(offset: any, elementHeight: any) {
@@ -25,6 +27,18 @@ function damp(x: any, y: any, lambda: any, dt: any) {
 function gbcl(e: any) {
   return e.getBoundingClientRect()
 }
+function isSafari(): boolean {
+  var ua = navigator.userAgent.toLowerCase();
+  if (ua.indexOf('safari') != -1) {
+    if (ua.indexOf('chrome') > -1) {
+      return false
+    } else {
+      return true
+    }
+  } else {
+    return false
+  }
+}
 
 class StringScroll {
   private static instance: StringScroll;
@@ -34,6 +48,7 @@ class StringScroll {
   progressEls: any
   stickyEls: any
   lerpEls: any
+  scrollEls: any
   aGlobalEs: any
   stickyObj: Array<any> = new Array<any>()
   globalObj: Array<any> = new Array<any>()
@@ -44,7 +59,10 @@ class StringScroll {
   stEvent: Map<string, any> = new Map<string, any>()
   glEvent: Map<string, any> = new Map<string, any>()
   prEvent: Map<string, any> = new Map<string, any>()
+  sf: number = 1
   f: number = 1
+  cf: number = 1
+
   s: number = 0.05
   t: number = 0
   c: number = 0
@@ -54,20 +72,30 @@ class StringScroll {
   isProg: boolean = false
   isProgTimeout: any = null
 
+  private isEnabled: boolean = true
+  private wheelBindFunc
+  private scrollBindFunc
+  private defaultScrollBindFunc
+
   private constructor() {
 
     d = document
     w = window
 
     this.wHeight = w.innerHeight;
+    this.scrollEls = d.querySelectorAll('[data-scroll]');
     this.globalEls = d.querySelectorAll('[data-scroll-global-progress]');
     this.progressEls = d.querySelectorAll('[data-scroll-progress]');
     this.stickyEls = d.querySelectorAll('[data-scroll-sticky-progress]');
     this.lerpEls = d.querySelectorAll('[data-lerp]');
     this.aGlobalEs = []
     w.addEventListener('resize', () => { this.onResize() })
-    w.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
-    w.addEventListener('scroll', this.onScroll.bind(this), { passive: false });
+
+    this.wheelBindFunc = this.onWheel.bind(this)
+    this.scrollBindFunc = this.onScroll.bind(this)
+    this.defaultScrollBindFunc = this.onDefaultScroll.bind(this)
+    w.addEventListener('wheel', this.wheelBindFunc, { passive: false });
+    w.addEventListener('scroll', this.scrollBindFunc, { passive: false });
     this.onAnimationFrame()
     this.onIntersectionObserver()
     this.onResize()
@@ -86,6 +114,19 @@ class StringScroll {
   }
   public setScrollFactor(factor: number) {
     this.f = factor
+    if (isSafari()) {
+      this.cf = this.f * this.sf
+    } else {
+      this.cf = this.f
+    }
+  }
+  public setSafariFactor(safariFactor: number) {
+    this.sf = safariFactor
+    if (isSafari()) {
+      this.cf = this.f * this.sf
+    } else {
+      this.cf = this.f
+    }
   }
   public on(key: string, event: any) {
     switch (key) {
@@ -95,12 +136,28 @@ class StringScroll {
       default:
         break;
     }
+  }
 
+  public disable() {
+    if (this.isEnabled) {
+      w.removeEventListener('wheel', this.wheelBindFunc);
+      w.removeEventListener('scroll', this.scrollBindFunc);
+      w.addEventListener('scroll', this.defaultScrollBindFunc);
+      this.isEnabled = false
+    }
+  }
+  public enable() {
+    if (!this.isEnabled) {
+      w.removeEventListener('scroll', this.defaultScrollBindFunc);
+      w.addEventListener('wheel', this.wheelBindFunc, { passive: false });
+      w.addEventListener('scroll', this.scrollBindFunc, { passive: false });
+      this.isEnabled = true
+    }
   }
 
   private onWheel(e: WheelEvent) {
     e.preventDefault();
-    this.d = e.deltaY * this.f
+    this.d = e.deltaY * this.cf
     this.t += this.d
 
     if (this.t < 0) {
@@ -118,6 +175,15 @@ class StringScroll {
       this.t = d.documentElement.scrollTop
       this.d = 0
     }
+    this.recalculate()
+    this.onScrollEvents.forEach(scrollEvent => {
+      scrollEvent(d.documentElement.scrollTop)
+    });
+  }
+
+  private onDefaultScroll(e: Event) {
+    this.c = d.documentElement.scrollTop
+    this.t = d.documentElement.scrollTop
     this.recalculate()
     this.onScrollEvents.forEach(scrollEvent => {
       scrollEvent(d.documentElement.scrollTop)
@@ -152,7 +218,7 @@ class StringScroll {
       });
     };
     let ob = new IntersectionObserver(callback, options);
-    this.globalEls.forEach((target: any) => {
+    this.scrollEls.forEach((target: any) => {
       ob.observe(target);
     });
   }
