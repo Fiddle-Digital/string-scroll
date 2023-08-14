@@ -1,3 +1,6 @@
+![Alpha](https://img.shields.io/badge/Status-Alpha-red)
+
+
 ## Installation
 
 using a package manager:

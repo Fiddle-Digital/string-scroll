@@ -1,5 +1,3 @@
-
-
 var d: any = null
 var w: any = null
 function parseOffset(element: any, offset: any = "0,0", windowHeight: any, baseRemValue: number = 16) {
@@ -195,12 +193,19 @@ class StringScroll {
   private isStickyEnable: boolean = true
   private isParallaxEnable: boolean = true
 
+
+  private force = 0.1;
+  private friction = 0.1;
+  private velocity = 0;
+
   private constructor() {
 
     d = document
     w = window
 
     this.wHeight = w.innerHeight
+
+
     this.scrollEls = d.querySelectorAll('[data-string]')
     this.progressEls = d.querySelectorAll('[data-string-progress]')
     this.stickyEls = d.querySelectorAll('[data-string-sticky-progress]')
@@ -297,7 +302,6 @@ class StringScroll {
 
         element.disabled = true
         element.el.setAttribute("data-string-disabled", "")
-        console.log(element)
       }
 
     }
@@ -333,7 +337,11 @@ class StringScroll {
     this.stEvent.set(id, event)
   }
   public onProgress(id: string, event: any) {
-    this.prEvent.set(id, event)
+    if (this.prEvent.has(id) == false) {
+      this.prEvent.set(id, [])
+    }
+    this.prEvent.get(id).push(event)
+
   }
   public onScrollProgress(id: string, event: any) {
     this.prScrollEvent.set(id, event)
@@ -356,6 +364,7 @@ class StringScroll {
 
 
   private isScrollDown: boolean = false
+
   private onWheel(e: WheelEvent) {
     e.preventDefault();
     this.currentDeltaModule = Math.abs(e.deltaY)
@@ -367,23 +376,17 @@ class StringScroll {
     if (this.t > this.bottomScroll) {
       this.t = this.bottomScroll
     }
-    if (this.stPs == null) {
-      this.stPs = d.documentElement.scrollTop
-    }
-    if (this.isScrollDown != this.c < this.t) {
-      this.stPs = d.documentElement.scrollTop
-      this.stPsDist = Math.abs((this.stPs == null ? this.t : this.stPs) - this.t) / 2
-      this.actualAccelerate = this.sAccelerate
-    }
     this.isScrollDown = this.c < this.t
   }
 
   private onScroll(e: Event) {
     e.preventDefault();
-    if (this.respState == "d" && this.isProg == false) {
+    if (this.isProg == false) {
+      // if (this.respState == "d" && this.isProg == false) {
       this.c = d.documentElement.scrollTop
       this.t = d.documentElement.scrollTop
       this.d = 0
+      window.scrollTo(0, this.t);
     }
     this.recalculate()
     this.onScrollEvents.forEach(scrollEvent => {
@@ -433,6 +436,7 @@ class StringScroll {
       entries.forEach((entry: any) => {
         if (entry.isIntersecting) {
           if (!this.activeProgressEls.includes(entry.target)) {
+
             this.activeProgressEls.push(entry.target);
             this.sendElements()
           }
@@ -449,8 +453,8 @@ class StringScroll {
     this.progressObj.forEach((target: any) => {
       let optionsProgress = {
         root: null,
-        rootMargin: `${target.oTop * -1}px 0px ${target.oBottom * -1}px 0px`,
-        threshold: 0.01,
+        rootMargin: `${target.oTop * -1 - 10}px 0px ${target.oBottom * -1 - 10}px 0px`,
+        threshold: 0.001,
       }
       let obGl = new IntersectionObserver(callbackGl, optionsProgress);
       obGl.observe(target.el);
@@ -490,39 +494,90 @@ class StringScroll {
 
   }
 
+
+
+  private disableRecalculate: boolean = false
+  private overflowCurrent = 0
+  public overflowHidden() {
+    this.disableRecalculate = true
+    this.overflowCurrent = this.c
+    const firstChild = document.getElementById('string-scroll-layout') as HTMLElement;
+    if (firstChild) {
+      firstChild.style.transform = `translateY(-${this.c}px)`
+      //this.preventiveRecalculate()
+    }
+  }
+  public overflowAuto() {
+    const firstChild = document.getElementById('string-scroll-layout') as HTMLElement;
+    if (firstChild) {
+      firstChild.style.transform = `translateY(0px)`
+    }
+    this.c = this.overflowCurrent
+    this.t = this.overflowCurrent
+    this.disableRecalculate = false
+    window.scrollTo(0, this.c);
+  }
+
   private onAnimationFrame() {
     let reqAnim = () => {
       if (this.respState == "d") {
-        let newC = damp(this.c, this.t, this.stPsDist, this.actualAccelerate, 1)
-        let lerp = newC - this.c
-        this.c = newC
-        if (Math.abs(this.c - this.t) < 1) {
-          this.c = this.t
-        }
-        if (lerp != 0) {
-          if (this.currentDeltaModule > 40) {
-            this.actualAccelerate = lerpAccelerate(this.actualAccelerate, this.sDecelerate, this.actualAccelerate / this.sDecelerate)
-          }
-          this.isProg = true
-          d.documentElement.scrollTop = d.body.scrollTop = this.c
-          document.documentElement.classList.add("string-scrolling")
-          if (this.isProgTimeout != null) {
-            clearTimeout(this.isProgTimeout)
-          }
-          this.isProgTimeout = setTimeout(() => {
-            this.isProg = false
-          }, 100);
-          lerp = Math.abs(lerp)
-          this.lerpEls.forEach((elemet: any, index: number) => {
-            this.lerpEls[index].style.setProperty('--string-lerp', lerp)
-          });
+
+        const acceleration = (this.t - this.c) * this.sAccelerate;
+        const deacceleration = acceleration * this.sDecelerate;
+        this.velocity = 0
+        this.velocity -= deacceleration;
+        this.velocity += acceleration;
+        if (this.velocity > 0.001 || this.velocity < -0.001) {
+          this.c += this.velocity;
         } else {
-          this.currentDeltaModule = 0
-          this.actualAccelerate = this.sAccelerate
-          this.stPs = null
-          document.documentElement.classList.remove("string-scrolling")
+          this.velocity = 0
+          this.c = this.t;
         }
+        window.scrollTo(0, this.c);
+        if (this.velocity == 0) {
+          this.isProg = false
+        } else {
+          this.isProg = true
+        }
+
+
+        //---------------
+        // this.c = this.t;
+        // window.scrollTo(0, this.c);
+        //---------------
+
+
+        // let newC = damp(this.c, this.t, this.stPsDist, this.actualAccelerate, 1)
+        // let lerp = newC - this.c
+        // this.c = newC
+        // if (Math.abs(this.c - this.t) < 1) {
+        //   this.c = this.t
+        // }
+        // if (lerp != 0) {
+        //   if (this.currentDeltaModule > 40) {
+        //     this.actualAccelerate = lerpAccelerate(this.actualAccelerate, this.sDecelerate, this.actualAccelerate / this.sDecelerate)
+        //   }
+        //   this.isProg = true
+        //   d.documentElement.scrollTop = d.body.scrollTop = this.c
+        //   document.documentElement.classList.add("string-scrolling")
+        //   if (this.isProgTimeout != null) {
+        //     clearTimeout(this.isProgTimeout)
+        //   }
+        //   this.isProgTimeout = setTimeout(() => {
+        //     this.isProg = false
+        //   }, 100);
+        //   lerp = Math.abs(lerp)
+        //   this.lerpEls.forEach((elemet: any, index: number) => {
+        //     this.lerpEls[index].style.setProperty('--string-lerp', lerp)
+        //   });
+        // } else {
+        //   this.currentDeltaModule = 0
+        //   this.actualAccelerate = this.sAccelerate
+        //   this.stPs = null
+        //   document.documentElement.classList.remove("string-scrolling")
+        // }
       }
+
       this.recalculate()
       requestAnimationFrame(reqAnim);
     }
@@ -531,22 +586,51 @@ class StringScroll {
 
   private recalculate() {
 
+    if (this.disableRecalculate) {
+      return
+    }
     if (this.isStickyEnable) {
+
       this.stickyObj.forEach((el: any) => {
         if (el.disabled) { return }
-        let prntH = gbcl(el.parent).height
-        let p = (this.c + (this.wHeight * this.c / prntH)) / prntH
+        let parentBox = gbcl(el.parent)
+
+        let p = 0
+        let elementTop = getCoords(el.parent).top - this.c;
+
+        let elementBottom = elementTop + parentBox.height;
+        if (elementBottom < 0) {
+          p = 1;
+        } else if (elementTop > this.wHeight) {
+          p = 0;
+        } else {
+          p = 1 - (elementBottom / (parentBox.height + this.wHeight));
+        }
+
         el.el.style.setProperty('--string-sticky-progress', p)
         this.eStic(el.id, p)
       })
     }
 
-
-    // console.log(this.activeProgressObj)
     if (this.isProgressEnable) {
       this.activeProgressObj.forEach((el: any) => {
         if (el.disabled) { return }
-        let v = ((this.c - el.oBottom + this.wHeight - (el.top)) / (this.wHeight - el.oTop - el.oBottom))
+        let v = 0
+        if (el.type == "full") {
+          let elementTop = el.top - this.c;
+
+          let elementBottom = elementTop + el.height;
+          if (elementBottom < 0) {
+            v = 1;
+          } else if (elementTop > this.wHeight) {
+            v = 0;
+          } else {
+            v = 1 - (elementBottom / (el.height + this.wHeight));
+          }
+        } else {
+          v = ((this.c - el.oBottom + this.wHeight - (el.top)) / (this.wHeight - el.oTop - el.oBottom))
+        }
+
         if (v > 1) {
           v = 1
           this.eEndProg(el.id, v)
@@ -558,7 +642,12 @@ class StringScroll {
 
         el.el.style.setProperty('--string-progress', v)
         if (el.oldValue != v) {
-          this.eProg(el.id, v)
+          if (this.prEvent.has(el.id)) {
+            this.prEvent.get(el.id).forEach((element: any) => {
+              element(v)
+            });
+          }
+
         }
         this.eScrollProg(el.id, el.oTop - this.c + this.wHeight)
         el.oldValue = v
@@ -575,12 +664,12 @@ class StringScroll {
         if (v < 0) {
           v = 0
         }
-        // el.el.style.setProperty('--string-parallax', v * el.parallaxFactor);
         el.el.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
         this.eParallax(el.id, v)
       })
     }
   }
+
 
 
 
@@ -641,41 +730,48 @@ class StringScroll {
       };
     })
 
+
     this.progressObj = Array.from(this.progressEls).map((el: any) => {
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : parseOffset(el, oA, this.wHeight)
-
       return {
         el: el,
         top: getCoords(el).top,
+        bottom: getCoords(el).top + r.height,
         height: r.height,
         oTop: o[0],
         oBottom: o[1],
         id: el.getAttribute("data-string-id"),
         disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-        oldValue: 0
+        oldValue: 0,
+        type: el.getAttribute("data-string-progress-type")
       };
     })
 
     this.activeProgressObj = Array.from(this.activeProgressEls).map((el: any) => {
       var r = gbcl(el)
+
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : parseOffset(el, oA, this.wHeight)
+
       return {
         el: el,
         top: getCoords(el).top,
+        bottom: getCoords(el).top + r.height,
         height: r.height,
         oTop: o[0],
         oBottom: o[1],
         id: el.getAttribute("data-string-id"),
         disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-        oldValue: 0
+        oldValue: 0,
+        type: el.getAttribute("data-string-progress-type")
       };
     })
 
     this.parallaxObj = Array.from(this.activeParallaxEls).map((el: any) => {
       var r = gbcl(el)
+
       var oA = el.getAttribute('data-string-offset')
       var pF = el.getAttribute('data-string-parallax')
       var o = oA == null ? [0, 0] : parseOffset(el, oA, this.wHeight)
@@ -721,35 +817,37 @@ class StringScroll {
     }
   }
 
-  private onResize() {
+  public onResize() {
     this.stickyEls.forEach((el: any) => {
       this.initEl(el, true)
     })
     this.progressEls.forEach((el: any) => {
       this.initEl(el, true)
+
+
     })
     this.scrollEls.forEach((el: any) => {
       this.initEl(el)
     })
     this.sendElements()
 
-
-    let b = d.body,
-      h = d.documentElement;
-
-    let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
-      h.clientHeight, h.scrollHeight, h.offsetHeight);
-    this.wHeight = w.screen.height;
-
-    this.bottomScroll = dHeight - this.wHeight
     if (!mobileCheck()) {
       this.respState = "d"
+      let b = d.body,
+        h = d.documentElement;
+      let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
+        h.clientHeight, h.scrollHeight, h.offsetHeight);
+      this.wHeight = w.innerHeight;
+
+
+      this.bottomScroll = dHeight - this.wHeight
     }
     if (mobileCheck()) {
       this.respState = "m"
     }
 
     this.onIntersectionObserver()
+
   }
 
 }
