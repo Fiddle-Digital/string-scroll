@@ -5,10 +5,10 @@
 
 using a package manager:
 ```sh
-npm i @fiddle.digital/string-scroll
+npm i @fiddle-digital/string-scroll
 ```
 ```sh
-import StringScroll from '@fiddle.digital/string-scroll'
+import StringScroll from '@fiddle-digital/string-scroll'
 ```
 
 ## Usage
@@ -39,11 +39,22 @@ Adding one of the HTML attributes, the element will start automatically updating
 ## Functions
 | Function  | Description |
 | ------------- |:-------------|
-| enable      | Enables the smooth scroll effect. |
-| disable      | Disables the smooth scroll effect, leaving all CSS variable effects.     |
-| setSpeed      | Sets the value of scroll speed. |
-| setScrollFactor      | Sets the value of the scroll speed factor coefficient. |
-| addStickyEvent      | Adds the ability to track the progress value of a separate element in a sticky group. |
-| addGlobalEvent      | Adds the ability to track the progress value of a separate element in a global group. |
-| addProgressEvent      | Adds the ability to track the progress value of a separate element in a progress group. |
-| on      | Event handler. Available scroll event, which tracks the scroll value of the page. |
+| setMobileMode | Set the scroll mode for mobile devices. |
+| setDesktopMode | Set the scroll mode for desktop devices. |
+| disableScroll | Disable the scroll functionality. |
+| enableScroll | Enable the scroll based on the device type. |
+| setSpeedAccelerate | Set the acceleration speed for desktop scrolling. |
+| setSpeedDecelerate | Set the deceleration speed for desktop scrolling. |
+| setScrollFactor | Set the scroll factor with specific calculations for Safari. |
+| setSafariFactor | Set a factor specifically for Safari browsers. |
+| overflowHidden | Set overflow as hidden and save the current position. |
+| overflowAuto | Reset overflow and return to the saved position. |
+| overflowAuto | Reset overflow and return to the saved position. |
+
+| enableProgress | Enable the scroll progress indicator. |
+| disableProgress | Deactivate the scroll progress indicator. |
+| enableSticky | Enable the sticky mode behavior. |
+| disableSticky | Disable the sticky mode behavior. |
+| enableParallax | Activate the parallax effect. |
+| disableParallax | Turn off the parallax effect. |
+
