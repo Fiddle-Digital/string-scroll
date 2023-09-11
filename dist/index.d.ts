@@ -14,6 +14,7 @@ declare class StringScroll {
     private activeProgressObj;
     private activeProgressFullObj;
     private scrollObj;
+    private activeParallaxObj;
     private parallaxObj;
     private onScrollEvents;
     private stEvent;
@@ -45,6 +46,8 @@ declare class StringScroll {
     private desktopScrollMode;
     private constructor();
     static getInstance(): StringScroll;
+    private initElementsFromDOM;
+    onChangePage(): void;
     setMobileMode(mode: "desktop" | "disable" | "default"): void;
     setDesktopMode(mode: "desktop" | "disable" | "default"): void;
     disableScroll(): void;
@@ -71,6 +74,7 @@ declare class StringScroll {
     onParallax(id: string, event: any): void;
     onScrollSticky(id: string, event: any): void;
     private onWheel;
+    private onMutationObserver;
     private onScroll;
     private onDefaultScroll;
     private onIntersectionObserver;

@@ -4,8 +4,6 @@ var d: any = null
 var w: any = null
 
 
-var animationFrameCount: number = 0
-
 function getCoords(e: any) {
   var br = gbcl(d.body),
     er = gbcl(e),
@@ -176,14 +174,19 @@ class StringScrollDesktop implements iStringScroll {
   public velocity = 0;
 
   public onAnimationFrame() {
+
+
+
     this.velocity = (this.data.t - this.data.c) * this.sAccelerate * (1 - this.sDecelerate);
 
     if (this.velocity > 0.1 || this.velocity < -0.1) {
       this.data.c += this.velocity;
       this.isProg = true
+
     } else {
       this.velocity = 0
       this.isProg = false
+
     }
 
     window.scrollTo(0, this.data.c);
@@ -195,7 +198,6 @@ class StringScrollDesktop implements iStringScroll {
     this.data.t += this.data.d
     this.data.t = Math.max(this.data.t, 0)
     this.data.t = Math.min(this.data.t, this.data.bS)
-
   }
 
   public onScroll(e: any) {
@@ -257,6 +259,7 @@ class StringScroll {
   private activeProgressObj: Array<any> = new Array<any>()
   private activeProgressFullObj: Array<any> = new Array<any>()
   private scrollObj: Array<any> = new Array<any>()
+  private activeParallaxObj: Array<any> = new Array<any>()
   private parallaxObj: Array<any> = new Array<any>()
 
 
@@ -307,15 +310,15 @@ class StringScroll {
     this.wHeight = w.innerHeight
     this.wWidth = w.innerWidth
 
+
     this.parser = new ParseManager()
 
     this.scrollEngenee = this.scrollEngeneeDesktop
-    this.scrollEls = d.querySelectorAll('[data-string]')
-    this.progressEls = d.querySelectorAll('[data-string-progress]')
-    this.stickyEls = d.querySelectorAll('[data-string-sticky-progress]')
-    this.parralaxEls = d.querySelectorAll('[data-string-parallax]')
-    this.lerpEls = d.querySelectorAll('[data-lerp]')
+    this.initElementsFromDOM()
     w.addEventListener('resize', () => { this.onResize() })
+
+
+
 
     this.wheelBindFunc = this.onWheel.bind(this)
     this.scrollBindFunc = this.onScroll.bind(this)
@@ -328,8 +331,12 @@ class StringScroll {
     this.sendElements()
     this.onIntersectionObserver()
     this.onResize()
+
+    this.onMutationObserver()
+
     document.documentElement.classList.add("string-scroll")
     document.documentElement.classList.add("string-smoothy")
+
 
   }
 
@@ -338,6 +345,24 @@ class StringScroll {
       StringScroll.instance = new StringScroll();
     }
     return StringScroll.instance;
+  }
+
+  private initElementsFromDOM() {
+    this.scrollEls = d.querySelectorAll('[data-string]')
+    this.progressEls = d.querySelectorAll('[data-string-progress]')
+    this.stickyEls = d.querySelectorAll('[data-string-sticky-progress]')
+    this.parralaxEls = d.querySelectorAll('[data-string-parallax]')
+    this.lerpEls = d.querySelectorAll('[data-lerp]')
+  }
+
+  public onChangePage() {
+
+    this.scrollEngenee.data.c = 0
+    this.scrollEngenee.data.t = 0
+    window.scrollTo(0, this.scrollEngenee.data.c);
+    this.initElementsFromDOM()
+    this.sendElements()
+    this.onIntersectionObserver()
   }
 
   public setMobileMode(mode: "desktop" | "disable" | "default") {
@@ -426,7 +451,6 @@ class StringScroll {
 
     }
     this.progressObj.forEach(setDisable)
-    this.scrollObj.forEach(setDisable)
     this.parallaxObj.forEach(setDisable)
     this.activeProgressObj.forEach(setDisable)
 
@@ -487,6 +511,32 @@ class StringScroll {
     this.scrollEngenee.onWheel(e)
   }
 
+  private onMutationObserver() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          let b = d.body,
+            h = d.documentElement
+          let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
+            h.clientHeight, h.scrollHeight, h.offsetHeight)
+          this.scrollEngenee.data.bS = dHeight - this.wHeight
+          this.initElementsFromDOM()
+          this.sendElements()
+          this.onIntersectionObserver()
+          this.recalculate()
+
+        }
+      });
+    });
+
+    const config = {
+      attributes: true,
+      childList: true,
+      subtree: true
+    };
+
+    observer.observe(document.body, config);
+  }
 
   private onScroll(e: Event) {
     this.scrollEngenee.onScroll(e)
@@ -510,6 +560,8 @@ class StringScroll {
       observer.disconnect();
     })
     this.observers = []
+
+
     let callback = (entries: any) => {
       entries.forEach((entry: any) => {
         if (entry.isIntersecting) {
@@ -556,7 +608,7 @@ class StringScroll {
     this.progressObj.forEach((target: any) => {
       let optionsProgress = {
         root: null,
-        rootMargin: `${target.oTop * -1 - 10}px 0px ${target.oBottom * -1 - 10}px 0px`,
+        rootMargin: `${target.oTop * 1 + this.wHeight * 1.5}px 0px ${target.oBottom * 1 + this.wHeight * 1.5}px 0px`,
         threshold: 0.001,
       }
       let obGl = new IntersectionObserver(callbackGl, optionsProgress);
@@ -567,32 +619,35 @@ class StringScroll {
 
 
 
-    let optionsParallax = {
-      root: null,
-      rootMargin: `0px`,
-      threshold: 0.01,
-    }
     let callbackPrx = (entries: any) => {
       entries.forEach((entry: any) => {
         if (entry.isIntersecting) {
           if (!this.activeParallaxEls.includes(entry.target)) {
-            this.activeParallaxEls.push(entry.target);
+            this.activeParallaxEls.push(entry.target)
             this.sendElements()
           }
         } else {
-          let index = this.activeParallaxEls.indexOf(entry.target);
+          let index = this.activeParallaxEls.indexOf(entry.target)
           if (index !== -1) {
-            this.activeParallaxEls.splice(index, 1);
+            this.activeParallaxEls.splice(index, 1)
             this.sendElements()
           }
         }
       })
     }
-    let obPrx = new IntersectionObserver(callbackPrx, optionsParallax);
-    this.parralaxEls.forEach((target: any) => {
-      obPrx.observe(target);
+
+    this.parallaxObj.forEach((target: any) => {
+      let optionsProgress = {
+        root: null,
+        rootMargin: `${target.oTop * 1 + 10}px 0px ${target.oBottom * 1 + 10}px 0px`,
+        threshold: 0.001,
+      }
+      let obPrx = new IntersectionObserver(callbackPrx, optionsProgress);
+      obPrx.observe(target.el);
+      this.observers.push(obPrx);
+
     });
-    this.observers.push(obPrx);
+
 
 
   }
@@ -654,7 +709,8 @@ class StringScroll {
     if (this.isProgressEnable) {
       this.activeProgressObj.forEach((el: any) => {
         if (el.disabled) { return }
-        let v = ((this.scrollEngenee.data.c - el.oBottom + this.wHeight - el.top) / (el.divisor))
+
+        let v = (this.scrollEngenee.data.c - el.startProgressPosition) / (el.endProgressPosition - el.startProgressPosition);
 
         if (v > 1) {
           v = 1
@@ -675,39 +731,13 @@ class StringScroll {
         this.eScrollProg(el.id, el.oTop - this.scrollEngenee.data.c + this.wHeight)
         el.oldValue = v
       })
-      this.activeProgressFullObj.forEach((el: any) => {
-        if (el.disabled) { return }
-        let v = 0
-        let elementTop = el.top - this.scrollEngenee.data.c;
-        let elementBottom = elementTop + el.height;
-        if (elementBottom < 0) {
-          v = 1;
-          this.eEndProg(el.id, v)
-        } else if (elementTop > this.wHeight) {
-          v = 0;
-          this.eStartProg(el.id, v)
-        } else {
-          v = 1 - (elementBottom / el.divisorFull);
-        }
-
-        el.el.style.setProperty('--string-progress', v)
-        if (el.oldValue != v) {
-          if (this.prEvent.has(el.id)) {
-            this.eScrollProg(el.id, el.oTop - this.scrollEngenee.data.c + this.wHeight)
-            this.prEvent.get(el.id).forEach((element: any) => {
-              element(v)
-            });
-          }
-        }
-
-        el.oldValue = v
-      })
     }
 
     if (this.isParallaxEnable) {
-      this.parallaxObj.forEach((el: any) => {
+      this.activeParallaxObj.forEach((el: any) => {
         if (el.disabled) { return }
-        let v = ((this.scrollEngenee.data.c - el.oBottom + this.wHeight - (el.top)) / (this.wHeight - el.oTop - el.oBottom))
+
+        let v = (this.scrollEngenee.data.c - el.startProgressPosition) / (el.endProgressPosition - el.startProgressPosition)
         if (v > 1) {
           v = 1
         }
@@ -754,7 +784,7 @@ class StringScroll {
         height: el.getAttribute("data-offset-height"),
         disabled: el.getAttribute("data-string-disabled") == null ? false : true,
         id: el.getAttribute("data-string-id"),
-        parent: el.parentNode,
+        parent: el == null ? null : el.parentNode,
       }
     })
 
@@ -764,81 +794,85 @@ class StringScroll {
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
       return {
         el: el,
-        top: getCoords(el).top,
-        bottom: getCoords(el).top + r.height,
-        height: r.height,
         oTop: o[0],
         oBottom: o[1],
-        id: el.getAttribute("data-string-id"),
-        disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-        oldValue: 0,
-        type: el.getAttribute("data-string-progress-type")
       };
     })
-
-    this.activeProgressObj = Array.from(this.activeProgressEls).filter((el: any) => {
-      return el.getAttribute("data-string-progress-type") != "full"
-    }).map((el: any) => {
+    this.activeProgressObj = Array.from(this.activeProgressEls).map((el: any) => {
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
-      return {
+
+      let elementData = {
         el: el,
         top: getCoords(el).top,
         bottom: getCoords(el).top + r.height,
         height: r.height,
         oTop: o[0],
         oBottom: o[1],
+        start: el.getAttribute("data-string-start") == null ? 1 : el.getAttribute("data-string-start"),
+        end: el.getAttribute("data-string-end") == null ? 1 : el.getAttribute("data-string-end"),
         id: el.getAttribute("data-string-id"),
         disabled: el.getAttribute("data-string-disabled") == null ? false : true,
         oldValue: 0,
-        divisor: this.wHeight - o[0] - o[1],
+        divisor: this.wHeight - o[0] - o[1] - r.height,
         divisorFull: r.height + this.wHeight,
+        startProgressPosition: 1,
+        endProgressPosition: 1
       }
+      elementData.startProgressPosition = (elementData.start * (elementData.top - this.wHeight - elementData.oTop))
+
+        + ((1 - elementData.start) * (elementData.top + elementData.height + elementData.oBottom - this.wHeight));
+
+
+
+      elementData.endProgressPosition = (elementData.end * (elementData.top + elementData.height + elementData.oBottom)
+        + ((1 - elementData.end) * (elementData.top - elementData.oTop)));
+
+
+      return elementData
     })
 
-
-    this.activeProgressFullObj = Array.from(this.activeProgressEls).filter((el: any) => {
-      return el.getAttribute("data-string-progress-type") == "full"
-    }).map((el: any) => {
+    this.parallaxObj = Array.from(this.parralaxEls).map((el: any) => {
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
-
       return {
         el: el,
-        top: getCoords(el).top,
-        bottom: getCoords(el).top + r.height,
-        height: r.height,
         oTop: o[0],
         oBottom: o[1],
-        id: el.getAttribute("data-string-id"),
-        disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-        oldValue: 0,
-        divisor: this.wHeight - (getCoords(el).top) - (getCoords(el).top + r.height),
-        divisorFull: r.height + this.wHeight,
-      }
+      };
     })
-
-
-    this.parallaxObj = Array.from(this.activeParallaxEls).map((el: any) => {
+    this.activeParallaxObj = Array.from(this.activeParallaxEls).map((el: any) => {
       var r = gbcl(el)
-
       var oA = el.getAttribute('data-string-offset')
+      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
       var pF = el.getAttribute('data-string-parallax')
-      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
-      return {
+      let elementData = {
         el: el,
         top: getCoords(el).top,
+        bottom: getCoords(el).top + r.height,
         height: r.height,
         oTop: o[0],
         oBottom: o[1],
-        parallaxFactor: pF,
+        start: el.getAttribute("data-string-start") == null ? 1 : el.getAttribute("data-string-start"),
+        end: el.getAttribute("data-string-end") == null ? 1 : el.getAttribute("data-string-end"),
         id: el.getAttribute("data-string-id"),
         disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-      };
-    })
+        parallaxFactor: pF,
+        oldValue: 0,
+        divisor: this.wHeight - o[0] - o[1] - r.height,
+        divisorFull: r.height + this.wHeight,
+        startProgressPosition: 1,
+        endProgressPosition: 1
+      }
+      elementData.startProgressPosition = elementData.top - this.wHeight
+        + (elementData.start * (elementData.height + elementData.oTop) - ((1 - elementData.start) * elementData.oTop));
+      elementData.endProgressPosition = elementData.top
+        + (elementData.end * (elementData.height + elementData.oBottom) - ((1 - elementData.end) * elementData.oBottom));
 
+      return elementData
+    })
     this.scrollObj = Array.from(this.scrollEls).map((el: any) => {
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
@@ -852,6 +886,10 @@ class StringScroll {
         disabled: el.getAttribute("data-string-disabled") == null ? false : true,
       };
     })
+
+
+
+
   }
 
   private initEl(el: any, isProgress: boolean = false) {
@@ -867,7 +905,7 @@ class StringScroll {
     }
   }
 
-  private onResize() {
+  public onResize() {
     this.stickyEls.forEach((el: any) => {
       this.initEl(el, true)
     })
@@ -894,6 +932,7 @@ class StringScroll {
       h.clientHeight, h.scrollHeight, h.offsetHeight)
     this.scrollEngenee.data.bS = dHeight - this.wHeight
     this.onIntersectionObserver()
+
   }
 }
 
