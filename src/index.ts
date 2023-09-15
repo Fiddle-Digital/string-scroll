@@ -302,6 +302,8 @@ class StringScroll {
   private mobileScrollMode: "desktop" | "disable" | "default" = "default"
   private desktopScrollMode: "desktop" | "disable" | "default" = "desktop"
 
+  public IsAutoupdateScrollPosition: boolean = true
+
   private constructor() {
 
     d = document
@@ -357,12 +359,22 @@ class StringScroll {
 
   public onChangePage() {
 
-    this.scrollEngenee.data.c = 0
-    this.scrollEngenee.data.t = 0
-    window.scrollTo(0, this.scrollEngenee.data.c);
+    if (this.IsAutoupdateScrollPosition) {
+      this.scrollEngenee.data.c = 0
+      this.scrollEngenee.data.t = 0
+      window.scrollTo(0, this.scrollEngenee.data.c);
+    }
+
+
     this.initElementsFromDOM()
     this.sendElements()
     this.onIntersectionObserver()
+  }
+
+  public SetScrollPosition(scroll: number) {
+    this.scrollEngenee.data.c = scroll
+    this.scrollEngenee.data.t = scroll
+    window.scrollTo(0, this.scrollEngenee.data.c);
   }
 
   public setMobileMode(mode: "desktop" | "disable" | "default") {
