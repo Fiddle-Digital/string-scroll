@@ -744,7 +744,7 @@ class StringScroll {
         if (v < 0) {
           v = 0
         }
-        el.el.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
+        el.child.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
         this.eParallax(el.id, v)
       })
     }
@@ -834,22 +834,36 @@ class StringScroll {
     })
 
     this.parallaxObj = Array.from(this.parralaxEls).map((el: any) => {
+      const childEl = el.querySelector('[data-string-parallax-child]');
+      childEl.style.position = "absolute"
+      childEl.style.left = "0"
+      childEl.style.top = "0"
+      childEl.style.width = "100%"
+      childEl.style.height = "100%"
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
       return {
         el: el,
+        child: childEl,
         oTop: o[0],
         oBottom: o[1],
       };
     })
     this.activeParallaxObj = Array.from(this.activeParallaxEls).map((el: any) => {
+      const childEl = el.querySelector('[data-string-parallax-child]');
+      childEl.style.position = "absolute"
+      childEl.style.left = "0"
+      childEl.style.top = "0"
+      childEl.style.width = "100%"
+      childEl.style.height = "100%"
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
       var pF = el.getAttribute('data-string-parallax')
       let elementData = {
         el: el,
+        child: childEl,
         top: getCoords(el).top,
         bottom: getCoords(el).top + r.height,
         height: r.height,
