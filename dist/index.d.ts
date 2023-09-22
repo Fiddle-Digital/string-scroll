@@ -1,4 +1,4 @@
-declare class StringScroll {
+export declare class StringScroll {
     private static instance;
     private wHeight;
     private wWidth;
@@ -44,10 +44,12 @@ declare class StringScroll {
     private parser;
     private mobileScrollMode;
     private desktopScrollMode;
+    IsAutoupdateScrollPosition: boolean;
     private constructor();
     static getInstance(): StringScroll;
     private initElementsFromDOM;
     onChangePage(): void;
+    SetScrollPosition(scroll: number): void;
     setMobileMode(mode: "desktop" | "disable" | "default"): void;
     setDesktopMode(mode: "desktop" | "disable" | "default"): void;
     disableScroll(): void;
@@ -91,4 +93,3 @@ declare class StringScroll {
     private initEl;
     onResize(): void;
 }
-export default StringScroll;

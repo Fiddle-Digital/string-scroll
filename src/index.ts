@@ -240,7 +240,7 @@ class StringScrollDisable implements iStringScroll {
 }
 
 
-class StringScroll {
+export class StringScroll {
   private static instance: StringScroll;
   private wHeight: number
   private wWidth: number
@@ -371,7 +371,7 @@ class StringScroll {
     this.onIntersectionObserver()
   }
 
-  public SetScrollPosition(scroll: number) {
+  SetScrollPosition(scroll: number) {
     this.scrollEngenee.data.c = scroll
     this.scrollEngenee.data.t = scroll
     window.scrollTo(0, this.scrollEngenee.data.c);
@@ -756,7 +756,11 @@ class StringScroll {
         if (v < 0) {
           v = 0
         }
+
+
+
         el.child.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
+        console.log(v * el.parallaxFactor * this.wHeight)
         this.eParallax(el.id, v)
       })
     }
@@ -832,14 +836,51 @@ class StringScroll {
         startProgressPosition: 1,
         endProgressPosition: 1
       }
-      elementData.startProgressPosition = (elementData.start * (elementData.top - this.wHeight - elementData.oTop))
-
-        + ((1 - elementData.start) * (elementData.top + elementData.height + elementData.oBottom - this.wHeight));
 
 
+      let startPosition = el.getAttribute("data-string-start") || "top bottom";
+      let endPosition = el.getAttribute("data-string-end") || "bottom top";
 
-      elementData.endProgressPosition = (elementData.end * (elementData.top + elementData.height + elementData.oBottom)
-        + ((1 - elementData.end) * (elementData.top - elementData.oTop)));
+      let [startElPos, startScreenPos] = startPosition.split(" ");
+      let [endElPos, endScreenPos] = endPosition.split(" ");
+
+
+      // elementData.startProgressPosition = (elementData.start * (elementData.top - this.wHeight - elementData.oTop))
+      //   + ((1 - elementData.start) * (elementData.top + elementData.height + elementData.oBottom - this.wHeight));
+
+      // elementData.endProgressPosition = (elementData.end * (elementData.top + elementData.height + elementData.oBottom)
+      //   + ((1 - elementData.end) * (elementData.top - elementData.oTop)));
+
+
+      if (startElPos == "top" && startScreenPos == "top") {
+        elementData.startProgressPosition = elementData.top - elementData.oTop
+      }
+      if (startElPos == "top" && startScreenPos == "bottom") {
+        elementData.startProgressPosition = elementData.top - elementData.oTop - this.wHeight
+      }
+      if (startElPos == "bottom" && startScreenPos == "top") {
+        elementData.startProgressPosition = elementData.top + elementData.height + elementData.oBottom
+      }
+      if (startElPos == "bottom" && startScreenPos == "bottom") {
+        elementData.startProgressPosition = elementData.top + elementData.height + elementData.oBottom - this.wHeight
+      }
+
+
+      if (endElPos == "top" && endScreenPos == "top") {
+        elementData.endProgressPosition = elementData.top - elementData.oTop
+      }
+      if (endElPos == "top" && endScreenPos == "bottom") {
+        elementData.endProgressPosition = elementData.top - elementData.oTop - this.wHeight
+      }
+      if (endElPos == "bottom" && endScreenPos == "top") {
+        elementData.endProgressPosition = elementData.top + elementData.height + elementData.oBottom
+      }
+      if (endElPos == "bottom" && endScreenPos == "bottom") {
+        elementData.endProgressPosition = elementData.top + elementData.height + elementData.oBottom - this.wHeight
+      }
+
+      //console.log(elementData.startProgressPosition, elementData.startProgressPosition)
+
 
 
       return elementData
@@ -963,6 +1004,3 @@ class StringScroll {
 }
 
 
-
-
-export default StringScroll
