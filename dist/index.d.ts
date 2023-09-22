@@ -1,4 +1,4 @@
-export declare class StringScroll {
+declare class StringScroll {
     private static instance;
     private wHeight;
     private wWidth;
@@ -93,3 +93,4 @@ export declare class StringScroll {
     private initEl;
     onResize(): void;
 }
+export default StringScroll;

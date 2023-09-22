@@ -240,7 +240,7 @@ class StringScrollDisable implements iStringScroll {
 }
 
 
-export class StringScroll {
+class StringScroll {
   private static instance: StringScroll;
   private wHeight: number
   private wWidth: number
@@ -1004,3 +1004,4 @@ export class StringScroll {
 }
 
 
+export default StringScroll
