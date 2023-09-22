@@ -760,7 +760,6 @@ class StringScroll {
 
 
         el.child.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
-        console.log(v * el.parallaxFactor * this.wHeight)
         this.eParallax(el.id, v)
       })
     }
@@ -878,10 +877,6 @@ class StringScroll {
       if (endElPos == "bottom" && endScreenPos == "bottom") {
         elementData.endProgressPosition = elementData.top + elementData.height + elementData.oBottom - this.wHeight
       }
-
-      //console.log(elementData.startProgressPosition, elementData.startProgressPosition)
-
-
 
       return elementData
     })
