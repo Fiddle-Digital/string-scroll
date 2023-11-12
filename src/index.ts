@@ -133,6 +133,7 @@ interface iStringScroll {
   sDecelerate: number
   isProg: boolean
   velocity: number
+  name: string
 
   onAnimationFrame(): void
 
@@ -142,41 +143,54 @@ interface iStringScroll {
   onResize(): void
 }
 
-class StringScrollMobile implements iStringScroll {
+class StringScrollDefault implements iStringScroll {
   public data: StringScrollData = new StringScrollData()
 
-  public sAccelerate: number = 0.05
-  public sDecelerate: number = 0.05
+  public sAccelerate: number = 0.13
+  public sDecelerate: number = 0.04
   public isProg: boolean = false
   public velocity = 0;
+  public name: string = "mobile"
+
+  private velocityTarget: number = 0
 
   public onAnimationFrame() {
 
+    if (this.velocityTarget > 0) {
+      this.velocity = this.velocityTarget / 6
+      this.velocityTarget -= this.velocity
+      if (this.velocityTarget < 10) {
+        this.velocityTarget = 0
+      }
+    }
+
+
   }
   public onWheel(e: any) {
-
+    //this.data.c += e.deltaY
+    //this.data.t += e.deltaY
+    this.velocityTarget += Math.abs(e.deltaY)
   }
   public onScroll(e: any) {
     this.data.c = d.documentElement.scrollTop
     this.data.t = d.documentElement.scrollTop
     this.data.d = 0
+
   }
   public onResize() {
 
   }
 }
 
-class StringScrollDesktop implements iStringScroll {
+class StringScrollSmooth implements iStringScroll {
   public data: StringScrollData = new StringScrollData()
-  public sAccelerate: number = 0.05
-  public sDecelerate: number = 0.05
+  public sAccelerate: number = 0.13
+  public sDecelerate: number = 0.04
   public isProg: boolean = false
   public velocity = 0;
+  public name: string = "desktop"
 
   public onAnimationFrame() {
-
-
-
     this.velocity = (this.data.t - this.data.c) * this.sAccelerate * (1 - this.sDecelerate);
 
     if (this.velocity > 0.1 || this.velocity < -0.1) {
@@ -188,7 +202,6 @@ class StringScrollDesktop implements iStringScroll {
       this.isProg = false
 
     }
-
     window.scrollTo(0, this.data.c);
   }
 
@@ -217,13 +230,13 @@ class StringScrollDesktop implements iStringScroll {
 
 class StringScrollDisable implements iStringScroll {
   public data: StringScrollData = new StringScrollData()
-  public sAccelerate: number = 0.05
-  public sDecelerate: number = 0.05
+  public sAccelerate: number = 0.13
+  public sDecelerate: number = 0.04
   public isProg: boolean = false
   public velocity = 0;
+  public name: string = "disable"
 
   public onAnimationFrame() {
-
   }
 
   public onWheel(e: any) {
@@ -279,6 +292,9 @@ class StringScroll {
   private sf: number = 1
   private f: number = 1
 
+  private sAccelerate: number = 0.13
+  private sDecelerate: number = 0.04
+
   private stateName: string = ""
   private disableRecalculate: boolean = false
   private overflowCurrent = 0
@@ -293,14 +309,14 @@ class StringScroll {
   private isStickyEnable: boolean = true
   private isParallaxEnable: boolean = true
 
-  private scrollEngenee: StringScrollDesktop
-  private scrollEngeneeDesktop: StringScrollDesktop = new StringScrollDesktop()
-  private scrollEngeneeMobile: StringScrollMobile = new StringScrollMobile()
+  private scrollEngenee: StringScrollSmooth
+  private scrollEngeneeDesktop: StringScrollSmooth = new StringScrollSmooth()
+  private scrollEngeneeMobile: StringScrollDefault = new StringScrollDefault()
   private scrollEngeneeDisable: StringScrollDisable = new StringScrollDisable()
   private parser: ParseManager
 
-  private mobileScrollMode: "desktop" | "disable" | "default" = "default"
-  private desktopScrollMode: "desktop" | "disable" | "default" = "desktop"
+  private mobileScrollMode: "smooth" | "disable" | "default" = "default"
+  private desktopScrollMode: "smooth" | "disable" | "default" = "smooth"
 
   public IsAutoupdateScrollPosition: boolean = true
 
@@ -354,7 +370,7 @@ class StringScroll {
     this.progressEls = d.querySelectorAll('[data-string-progress]')
     this.stickyEls = d.querySelectorAll('[data-string-sticky-progress]')
     this.parralaxEls = d.querySelectorAll('[data-string-parallax]')
-    this.lerpEls = d.querySelectorAll('[data-lerp]')
+    this.lerpEls = d.querySelectorAll('[data-string-lerp]')
   }
 
   public onChangePage() {
@@ -377,12 +393,14 @@ class StringScroll {
     window.scrollTo(0, this.scrollEngenee.data.c);
   }
 
-  public setMobileMode(mode: "desktop" | "disable" | "default") {
+  public setMobileMode(mode: "smooth" | "disable" | "default") {
     this.mobileScrollMode = mode
+    this.enableScroll()
   }
 
-  public setDesktopMode(mode: "desktop" | "disable" | "default") {
+  public setDesktopMode(mode: "smooth" | "disable" | "default") {
     this.desktopScrollMode = mode
+    this.enableScroll()
   }
 
 
@@ -392,17 +410,22 @@ class StringScroll {
   public enableScroll() {
     if (w.innerWidth < 1024 || isTouchDevice()) {
       this.setScrollMode(this.mobileScrollMode)
-    }
-    else {
+    } else {
       this.setScrollMode(this.desktopScrollMode)
     }
   }
 
   public setSpeedAccelerate(speed: number) {
+    this.sAccelerate = speed
     this.scrollEngeneeDesktop.sAccelerate = speed
+    this.scrollEngeneeDisable.sAccelerate = speed
+    this.scrollEngeneeMobile.sAccelerate = speed
   }
   public setSpeedDecelerate(speed: number) {
+    this.sDecelerate = speed
     this.scrollEngeneeDesktop.sDecelerate = speed
+    this.scrollEngeneeDisable.sDecelerate = speed
+    this.scrollEngeneeMobile.sDecelerate = speed
   }
   public setScrollFactor(factor: number) {
     this.f = factor
@@ -431,10 +454,10 @@ class StringScroll {
   }
 
 
-  public setScrollMode(mode: "desktop" | "disable" | "default") {
+  public setScrollMode(mode: "smooth" | "disable" | "default") {
     this.stateName = mode
     switch (mode) {
-      case "desktop":
+      case "smooth":
         this.scrollEngenee = this.scrollEngeneeDesktop
         break;
       case "default":
@@ -688,8 +711,10 @@ class StringScroll {
 
   private onAnimationFrame() {
     let reqAnim = () => {
-
       this.scrollEngenee.onAnimationFrame()
+      this.lerpEls.forEach((elemet: any, index: number) => {
+        this.lerpEls[index].style.setProperty('--scroll-lerp', Math.abs(this.scrollEngenee.velocity))
+      });
       requestAnimationFrame(reqAnim);
     }
     requestAnimationFrame(reqAnim);
@@ -742,13 +767,15 @@ class StringScroll {
         }
         this.eScrollProg(el.id, el.oTop - this.scrollEngenee.data.c + this.wHeight)
         el.oldValue = v
+        el.connectEvent.forEach((event: any) => {
+          event(v)
+        });
       })
     }
 
     if (this.isParallaxEnable) {
       this.activeParallaxObj.forEach((el: any) => {
         if (el.disabled) { return }
-
         let v = (this.scrollEngenee.data.c - el.startProgressPosition) / (el.endProgressPosition - el.startProgressPosition)
         if (v > 1) {
           v = 1
@@ -756,10 +783,7 @@ class StringScroll {
         if (v < 0) {
           v = 0
         }
-
-
-
-        el.child.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
+        el.el.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
         this.eParallax(el.id, v)
       })
     }
@@ -813,7 +837,11 @@ class StringScroll {
         oBottom: o[1],
       };
     })
-    this.activeProgressObj = Array.from(this.activeProgressEls).map((el: any) => {
+
+
+    this.activeProgressObj = Array.from(this.activeProgressEls).filter((el: any) => {
+      return el.getAttribute('data-string-connect') == null
+    }).map((el: any) => {
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
@@ -833,7 +861,8 @@ class StringScroll {
         divisor: this.wHeight - o[0] - o[1] - r.height,
         divisorFull: r.height + this.wHeight,
         startProgressPosition: 1,
-        endProgressPosition: 1
+        endProgressPosition: 1,
+        connectEvent: new Array<any>()
       }
 
 
@@ -842,14 +871,6 @@ class StringScroll {
 
       let [startElPos, startScreenPos] = startPosition.split(" ");
       let [endElPos, endScreenPos] = endPosition.split(" ");
-
-
-      // elementData.startProgressPosition = (elementData.start * (elementData.top - this.wHeight - elementData.oTop))
-      //   + ((1 - elementData.start) * (elementData.top + elementData.height + elementData.oBottom - this.wHeight));
-
-      // elementData.endProgressPosition = (elementData.end * (elementData.top + elementData.height + elementData.oBottom)
-      //   + ((1 - elementData.end) * (elementData.top - elementData.oTop)));
-
 
       if (startElPos == "top" && startScreenPos == "top") {
         elementData.startProgressPosition = elementData.top - elementData.oTop
@@ -879,62 +900,89 @@ class StringScroll {
       }
 
       return elementData
+
     })
 
+
+    Array.from(this.activeProgressEls).forEach((el: any) => {
+      if (el.getAttribute('data-string-connect') != null) {
+
+        let findedElement = this.activeProgressObj.find((elFind: any) => {
+          return elFind.id == el.getAttribute('data-string-connect')
+        })
+        if (findedElement != null) {
+          findedElement.connectEvent.push((progress: number) => {
+            el.style.setProperty('--string-progress', progress)
+          })
+        }
+      }
+    })
+
+
     this.parallaxObj = Array.from(this.parralaxEls).map((el: any) => {
-      const childEl = el.querySelector('[data-string-parallax-child]');
-      childEl.style.position = "absolute"
-      childEl.style.left = "0"
-      childEl.style.top = "0"
-      childEl.style.width = "100%"
-      childEl.style.height = "100%"
+
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
       var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
       return {
         el: el,
-        child: childEl,
         oTop: o[0],
         oBottom: o[1],
       };
     })
-    this.activeParallaxObj = Array.from(this.activeParallaxEls).map((el: any) => {
-      const childEl = el.querySelector('[data-string-parallax-child]');
-      childEl.style.position = "absolute"
-      childEl.style.left = "0"
-      childEl.style.top = "0"
-      childEl.style.width = "100%"
-      childEl.style.height = "100%"
-      var r = gbcl(el)
-      var oA = el.getAttribute('data-string-offset')
-      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
-      var pF = el.getAttribute('data-string-parallax')
-      let elementData = {
-        el: el,
-        child: childEl,
-        top: getCoords(el).top,
-        bottom: getCoords(el).top + r.height,
-        height: r.height,
-        oTop: o[0],
-        oBottom: o[1],
-        start: el.getAttribute("data-string-start") == null ? 1 : el.getAttribute("data-string-start"),
-        end: el.getAttribute("data-string-end") == null ? 1 : el.getAttribute("data-string-end"),
-        id: el.getAttribute("data-string-id"),
-        disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-        parallaxFactor: pF,
-        oldValue: 0,
-        divisor: this.wHeight - o[0] - o[1] - r.height,
-        divisorFull: r.height + this.wHeight,
-        startProgressPosition: 1,
-        endProgressPosition: 1
-      }
-      elementData.startProgressPosition = elementData.top - this.wHeight
-        + (elementData.start * (elementData.height + elementData.oTop) - ((1 - elementData.start) * elementData.oTop));
-      elementData.endProgressPosition = elementData.top
-        + (elementData.end * (elementData.height + elementData.oBottom) - ((1 - elementData.end) * elementData.oBottom));
 
-      return elementData
+    this.activeParallaxObj = Array.from(this.activeParallaxEls).filter((el: any) => {
+      return el.getAttribute('data-string-connect') == null
+    }).map((el: any) => {
+      if (el.getAttribute('data-string-connect') == null) {
+
+        var r = gbcl(el)
+        var oA = el.getAttribute('data-string-offset')
+        var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
+        var pF = el.getAttribute('data-string-parallax')
+        let elementData = {
+          el: el,
+          top: getCoords(el).top,
+          bottom: getCoords(el).top + r.height,
+          height: r.height,
+          oTop: o[0],
+          oBottom: o[1],
+          start: el.getAttribute("data-string-start") == null ? 1 : el.getAttribute("data-string-start"),
+          end: el.getAttribute("data-string-end") == null ? 1 : el.getAttribute("data-string-end"),
+          id: el.getAttribute("data-string-id"),
+          disabled: el.getAttribute("data-string-disabled") == null ? false : true,
+          parallaxFactor: pF,
+          oldValue: 0,
+          divisor: this.wHeight - o[0] - o[1] - r.height,
+          divisorFull: r.height + this.wHeight,
+          startProgressPosition: 1,
+          endProgressPosition: 1
+        }
+        elementData.startProgressPosition = elementData.top - this.wHeight
+          + (elementData.start * (elementData.height + elementData.oTop) - ((1 - elementData.start) * elementData.oTop));
+        elementData.endProgressPosition = elementData.top
+          + (elementData.end * (elementData.height + elementData.oBottom) - ((1 - elementData.end) * elementData.oBottom));
+
+        return elementData
+      }
     })
+
+    Array.from(this.activeParallaxEls).forEach((el: any) => {
+      if (el.getAttribute('data-string-connect') != null) {
+
+        let findedElement = this.activeProgressObj.find((elFind: any) => {
+          return elFind.id == el.getAttribute('data-string-connect')
+        })
+        var pF = el.getAttribute('data-string-parallax')
+        if (findedElement != null) {
+          findedElement.connectEvent.push((progress: number) => {
+            el.style.transform = `translateY(${progress * pF * this.wHeight}px)`;
+          })
+        }
+      }
+    })
+
+
     this.scrollObj = Array.from(this.scrollEls).map((el: any) => {
       var r = gbcl(el)
       var oA = el.getAttribute('data-string-offset')
@@ -995,8 +1043,12 @@ class StringScroll {
     this.scrollEngenee.data.bS = dHeight - this.wHeight
     this.onIntersectionObserver()
 
+    //this.scrollEngenee.onScroll()
+    this.recalculate()
+
   }
 }
+
 
 
 export default StringScroll

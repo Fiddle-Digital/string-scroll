@@ -27,6 +27,8 @@ declare class StringScroll {
     private observers;
     private sf;
     private f;
+    private sAccelerate;
+    private sDecelerate;
     private stateName;
     private disableRecalculate;
     private overflowCurrent;
@@ -50,8 +52,8 @@ declare class StringScroll {
     private initElementsFromDOM;
     onChangePage(): void;
     SetScrollPosition(scroll: number): void;
-    setMobileMode(mode: "desktop" | "disable" | "default"): void;
-    setDesktopMode(mode: "desktop" | "disable" | "default"): void;
+    setMobileMode(mode: "smooth" | "disable" | "default"): void;
+    setDesktopMode(mode: "smooth" | "disable" | "default"): void;
     disableScroll(): void;
     enableScroll(): void;
     setSpeedAccelerate(speed: number): void;
@@ -59,7 +61,7 @@ declare class StringScroll {
     setScrollFactor(factor: number): void;
     setSafariFactor(safariFactor: number): void;
     on(key: string, event: any): void;
-    setScrollMode(mode: "desktop" | "disable" | "default"): void;
+    setScrollMode(mode: "smooth" | "disable" | "default"): void;
     enableById(): void;
     disableById(id: string): void;
     enableProgress(): void;

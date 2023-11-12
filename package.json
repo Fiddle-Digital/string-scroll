@@ -1,6 +1,6 @@
 {
   "name": "@fiddle-digital/string-scroll",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "String scroll — smooth scrolling using css parameters",
   "keywords": [
     "scroll",
