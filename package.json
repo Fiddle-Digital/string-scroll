@@ -1,6 +1,6 @@
 {
   "name": "@fiddle-digital/string-scroll",
-  "version": "0.0.13",
+  "version": "0.1.1",
   "description": "String scroll — smooth scrolling using css parameters",
   "keywords": [
     "scroll",
@@ -18,7 +18,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "webpack",
-    "minify": "terser dist/index.js -o dist/index.js"
+    "minify": "terser dist/index.js --compress --mangle -o dist/index.js"
   },
   "authors": [
     {

@@ -1,11 +1,17 @@
 
 
-var d: any = null
-var w: any = null
+let d: any = null
+let w: any = null
+const ds = "data-string-"
+const tS = "top"
+const bS = "bottom"
 
+function attr(e: any, n: string, d: any = null) {
+  return e.getAttribute(n) == null ? d : e.getAttribute(n)
+}
 
 function getCoords(e: any) {
-  var br = gbcl(d.body),
+  let br = gbcl(d.body),
     er = gbcl(e),
     o = er.top - br.top;
   return { top: o };
@@ -14,7 +20,7 @@ function gbcl(e: any) {
   return e.getBoundingClientRect()
 }
 function isSafari(): boolean {
-  var ua = navigator.userAgent.toLowerCase();
+  let ua = navigator.userAgent.toLowerCase();
   if (ua.indexOf('safari') != -1) {
     if (ua.indexOf('chrome') > -1) {
       return false
@@ -31,89 +37,75 @@ function isTouchDevice() {
 }
 
 class ParseManager {
-  public parseOffset(element: any, offset: any = "0,0", windowHeight: any, baseRemValue: number = 16) {
-    let offsets = offset.split(',');
-    if (offsets.length === 1) {
-      offsets = [offsets[0], offsets[0]];
+  public parseOffset(e: any, o: any = "0,0", wH: any, baseRem: number = 16) {
+    let ofs = o.split(',');
+    if (ofs.length === 1) {
+      ofs = [ofs[0], ofs[0]];
     }
-    let offsetsValue = offsets.map((offset: any) => {
-      offset = offset.trim();
-      if (offset.startsWith('calc')) {
-        return this.parseCalculation(offset, element, windowHeight, baseRemValue);
+    let oV = ofs.map((os: any) => {
+      os = os.trim();
+      if (os.startsWith('calc')) {
+        return this.parseCalc(os, e, wH, baseRem);
       } else {
-        return this.parseSingleValue(offset, element, windowHeight, baseRemValue);
+        return this.parseSingle(os, e, wH, baseRem);
       }
     });
-    return offsetsValue;
+    return oV;
   }
 
-  public parseSingleValue(value: string, element: any, windowHeight: any, baseRemValue: number): number {
-    let isNegative = value.startsWith('-');
+  public parseSingle(v: string, element: any, wH: any, baseRem: number): number {
+    let isNegative = v.startsWith('-');
     if (isNegative) {
-      value = value.slice(1); // remove the negative sign
+      v = v.slice(1);
     }
-    let parsedValue;
-    if (value === 'selfHeight') {
-      parsedValue = element.offsetHeight;
-    } else if (value.endsWith('px')) {
-      parsedValue = parseFloat(value);
-    } else if (value.endsWith('%')) {
-      parsedValue = parseFloat(value) * windowHeight / 100;
-    } else if (value.endsWith('rem')) {
-      parsedValue = parseFloat(value) * baseRemValue;
-    } else {
-      throw new Error(`Unknown format offset: ${value}`);
+    let pV;
+    if (v === 'selfHeight') {
+      pV = element.offsetHeight;
+    } else if (v.endsWith('px')) {
+      pV = parseFloat(v);
+    } else if (v.endsWith('%')) {
+      pV = parseFloat(v) * wH / 100;
+    } else if (v.endsWith('rem')) {
+      pV = parseFloat(v) * baseRem;
     }
-    return isNegative ? -parsedValue : parsedValue;
+    return isNegative ? -pV : pV;
   }
 
-  public parseCalculation(calculation: string, element: any, windowHeight: any, baseRemValue: number): number {
-    calculation = calculation.slice(5, -1); // remove "calc(" and ")"
-    let parts = calculation.split(/([-+])/).filter(Boolean); // split by '-' or '+'
-    return parts.reduce((total, part, index) => {
-      if (part === '-' || part === '+') {
-        return total; // ignore the operators for now
+  public parseCalc(c: string, element: any, wH: any, baseRem: number): number {
+    c = c.slice(5, -1);
+    let ps = c.split(/([-+])/).filter(Boolean);
+    return ps.reduce((t, p, i) => {
+      if (p === '-' || p === '+') {
+        return t;
       } else {
-        // remove 'px' from part to match the existing format
-        let value = this.parseSingleValue(part.trim(), element, windowHeight, baseRemValue);
-        if (parts[index - 1] === '-') {
-          return total - value;
+        let value = this.parseSingle(p.trim(), element, wH, baseRem);
+        if (ps[i - 1] === '-') {
+          return t - value;
         } else {
-          return total + value;
+          return t + value;
         }
       }
     }, 0);
   }
 
-  public parseOrigin(originString: string) {
-    if (originString == null || originString == "") {
-      originString = "center center"
+  public parseOrigin(o: string) {
+    if (o == null || o == "") {
+      o = "center center"
     }
-    const parts = originString.split(' ');
-
-    const x = this.parseOriginPart(parts[0]);
-    const y = this.parseOriginPart(parts[1] || parts[0]);
-
+    const p = o.split(' ');
+    const x = this.parseOrig(p[0]);
+    const y = this.parseOrig(p[1] || p[0]);
     return `${x} ${y}`;
   }
 
-  public parseOriginPart(part: string) {
+  public parseOrig(part: string) {
     part = part.trim();
     if (part.startsWith('random')) {
-      const options = part.slice(7, -1).split(',').map(s => s.trim());
-      options.forEach(option => this.validateOrigin(option));
-      const choice = Math.floor(Math.random() * options.length);
-      return options[choice];
+      const o = part.slice(7, -1).split(',').map(s => s.trim());
+      const c = Math.floor(Math.random() * o.length);
+      return o[c];
     } else {
-      this.validateOrigin(part);
       return part;
-    }
-  }
-
-  public validateOrigin(option: any) {
-    const validOptions = ['top', 'center', 'bottom', 'left', 'right'];
-    if (!validOptions.includes(option)) {
-      throw new Error(`Invalid origin option: ${option}`);
     }
   }
 }
@@ -129,47 +121,41 @@ class StringScrollData {
 }
 
 interface iStringScroll {
-  sAccelerate: number
-  sDecelerate: number
+  sA: number
+  sD: number
   isProg: boolean
-  velocity: number
+  v: number
   name: string
-
   onAnimationFrame(): void
-
   onWheel(e: any): void
   onScroll(e: any): void
-
-  onResize(): void
 }
 
 class StringScrollDefault implements iStringScroll {
   public data: StringScrollData = new StringScrollData()
 
-  public sAccelerate: number = 0.13
-  public sDecelerate: number = 0.04
+  public sA: number = 0.13
+  public sD: number = 0.04
   public isProg: boolean = false
-  public velocity = 0;
+  public v = 0;
   public name: string = "mobile"
 
-  private velocityTarget: number = 0
+  private vT: number = 0
 
   public onAnimationFrame() {
 
-    if (this.velocityTarget > 0) {
-      this.velocity = this.velocityTarget / 6
-      this.velocityTarget -= this.velocity
-      if (this.velocityTarget < 10) {
-        this.velocityTarget = 0
+    if (this.vT > 0) {
+      this.v = this.vT / 6
+      this.vT -= this.v
+      if (this.vT < 10) {
+        this.vT = 0
       }
     }
 
 
   }
   public onWheel(e: any) {
-    //this.data.c += e.deltaY
-    //this.data.t += e.deltaY
-    this.velocityTarget += Math.abs(e.deltaY)
+    this.vT += Math.abs(e.deltaY)
   }
   public onScroll(e: any) {
     this.data.c = d.documentElement.scrollTop
@@ -177,28 +163,25 @@ class StringScrollDefault implements iStringScroll {
     this.data.d = 0
 
   }
-  public onResize() {
-
-  }
 }
 
 class StringScrollSmooth implements iStringScroll {
   public data: StringScrollData = new StringScrollData()
-  public sAccelerate: number = 0.13
-  public sDecelerate: number = 0.04
+  public sA: number = 0.13
+  public sD: number = 0.04
   public isProg: boolean = false
-  public velocity = 0;
+  public v = 0;
   public name: string = "desktop"
 
   public onAnimationFrame() {
-    this.velocity = (this.data.t - this.data.c) * this.sAccelerate * (1 - this.sDecelerate);
+    this.v = (this.data.t - this.data.c) * this.sA * (1 - this.sD);
 
-    if (this.velocity > 0.1 || this.velocity < -0.1) {
-      this.data.c += this.velocity;
+    if (this.v > 0.1 || this.v < -0.1) {
+      this.data.c += this.v;
       this.isProg = true
 
     } else {
-      this.velocity = 0
+      this.v = 0
       this.isProg = false
 
     }
@@ -222,18 +205,14 @@ class StringScrollSmooth implements iStringScroll {
       window.scrollTo(0, this.data.t)
     }
   }
-
-  public onResize() {
-
-  }
 }
 
 class StringScrollDisable implements iStringScroll {
   public data: StringScrollData = new StringScrollData()
-  public sAccelerate: number = 0.13
-  public sDecelerate: number = 0.04
+  public sA: number = 0.13
+  public sD: number = 0.04
   public isProg: boolean = false
-  public velocity = 0;
+  public v = 0;
   public name: string = "disable"
 
   public onAnimationFrame() {
@@ -246,77 +225,58 @@ class StringScrollDisable implements iStringScroll {
     e.preventDefault()
 
   }
-
-  public onResize() {
-
-  }
 }
 
 
-class StringScroll {
-  private static instance: StringScroll;
-  private wHeight: number
-  private wWidth: number
+export class StringScroll {
+  private static i: StringScroll;
+  private wH: number
+  private wW: number
 
-  private activeProgressEls: Array<any> = new Array<any>()
-  private activeParallaxEls: Array<any> = new Array<any>()
+  private actProgE: Array<any> = new Array<any>()
+  private actParallE: Array<any> = new Array<any>()
 
-  private progressEls: any
-  private stickyEls: any
-  private lerpEls: any
-  private scrollEls: any
-  private parralaxEls: any
+  private progE: any
+  private lerpE: any
+  private scrollE: any
+  private parallE: any
 
-  private stickyObj: Array<any> = new Array<any>()
-  private progressObj: Array<any> = new Array<any>()
-  private activeProgressObj: Array<any> = new Array<any>()
-  private activeProgressFullObj: Array<any> = new Array<any>()
-  private scrollObj: Array<any> = new Array<any>()
-  private activeParallaxObj: Array<any> = new Array<any>()
-  private parallaxObj: Array<any> = new Array<any>()
+  private progO: Array<any> = new Array<any>()
+  private actProgO: Array<any> = new Array<any>()
+  private scrollO: Array<any> = new Array<any>()
+  private actParallO: Array<any> = new Array<any>()
+  private parallO: Array<any> = new Array<any>()
 
 
 
   private onScrollEvents: Array<any> = new Array<any>()
 
-  private stEvent: Map<string, any> = new Map<string, any>()
+  private intersectionEvent: Map<string, any> = new Map<string, any>()
   private prEvent: Map<string, any> = new Map<string, any>()
-  private prxEvent: Map<string, any> = new Map<string, any>()
   private prScrollEvent: Map<string, any> = new Map<string, any>()
-  private prStartEvent: Map<string, any> = new Map<string, any>()
-  private prEndEvent: Map<string, any> = new Map<string, any>()
-  private stScrollEvent: Map<string, any> = new Map<string, any>()
 
-  private observers: IntersectionObserver[] = [];
+  private obs: IntersectionObserver[] = [];
 
   private sf: number = 1
   private f: number = 1
 
-  private sAccelerate: number = 0.13
-  private sDecelerate: number = 0.04
-
-  private stateName: string = ""
-  private disableRecalculate: boolean = false
+  private disablecalc: boolean = false
   private overflowCurrent = 0
 
-
-  private isEnabled: boolean = true
   private wheelBindFunc
   private scrollBindFunc
-  private defaultScrollBindFunc
 
-  private isProgressEnable: boolean = true
-  private isStickyEnable: boolean = true
-  private isParallaxEnable: boolean = true
+  private isProgress: boolean = true
+  private isParallax: boolean = true
 
-  private scrollEngenee: StringScrollSmooth
-  private scrollEngeneeDesktop: StringScrollSmooth = new StringScrollSmooth()
-  private scrollEngeneeMobile: StringScrollDefault = new StringScrollDefault()
-  private scrollEngeneeDisable: StringScrollDisable = new StringScrollDisable()
+  private sEn: StringScrollSmooth
+  private sEnDesktop: StringScrollSmooth = new StringScrollSmooth()
+  private sEnMobile: StringScrollDefault = new StringScrollDefault()
+  private sEnDisable: StringScrollDisable = new StringScrollDisable()
   private parser: ParseManager
 
-  private mobileScrollMode: "smooth" | "disable" | "default" = "default"
-  private desktopScrollMode: "smooth" | "disable" | "default" = "smooth"
+  private mMode: "smooth" | "disable" | "default" = "default"
+  private dMode: "smooth" | "disable" | "default" = "smooth"
 
   public IsAutoupdateScrollPosition: boolean = true
 
@@ -325,13 +285,13 @@ class StringScroll {
     d = document
     w = window
 
-    this.wHeight = w.innerHeight
-    this.wWidth = w.innerWidth
+    this.wH = w.innerHeight
+    this.wW = w.innerWidth
 
 
     this.parser = new ParseManager()
 
-    this.scrollEngenee = this.scrollEngeneeDesktop
+    this.sEn = this.sEnDesktop
     this.initElementsFromDOM()
     w.addEventListener('resize', () => { this.onResize() })
 
@@ -340,14 +300,13 @@ class StringScroll {
 
     this.wheelBindFunc = this.onWheel.bind(this)
     this.scrollBindFunc = this.onScroll.bind(this)
-    this.defaultScrollBindFunc = this.onDefaultScroll.bind(this)
 
     document.body.addEventListener('wheel', this.wheelBindFunc, { passive: false })
     w.addEventListener('scroll', this.scrollBindFunc, { passive: false })
 
     this.onAnimationFrame()
     this.sendElements()
-    this.onIntersectionObserver()
+    this.initObserver()
     this.onResize()
 
     this.onMutationObserver()
@@ -359,191 +318,155 @@ class StringScroll {
   }
 
   public static getInstance(): StringScroll {
-    if (!StringScroll.instance) {
-      StringScroll.instance = new StringScroll();
+    if (!StringScroll.i) {
+      StringScroll.i = new StringScroll();
     }
-    return StringScroll.instance;
+    return StringScroll.i;
   }
 
   private initElementsFromDOM() {
-    this.scrollEls = d.querySelectorAll('[data-string]')
-    this.progressEls = d.querySelectorAll('[data-string-progress]')
-    this.stickyEls = d.querySelectorAll('[data-string-sticky-progress]')
-    this.parralaxEls = d.querySelectorAll('[data-string-parallax]')
-    this.lerpEls = d.querySelectorAll('[data-string-lerp]')
+    this.scrollE = d.querySelectorAll('[data-string]')
+    this.progE = d.querySelectorAll(`[${ds}progress]`)
+    this.parallE = d.querySelectorAll(`[${ds}parallax]`)
+    this.lerpE = d.querySelectorAll(`[${ds}lerp]`)
   }
 
-  public onChangePage() {
-
-    if (this.IsAutoupdateScrollPosition) {
-      this.scrollEngenee.data.c = 0
-      this.scrollEngenee.data.t = 0
-      window.scrollTo(0, this.scrollEngenee.data.c);
-    }
-
-
-    this.initElementsFromDOM()
-    this.sendElements()
-    this.onIntersectionObserver()
-  }
-
-  SetScrollPosition(scroll: number) {
-    this.scrollEngenee.data.c = scroll
-    this.scrollEngenee.data.t = scroll
-    window.scrollTo(0, this.scrollEngenee.data.c);
+  public setScrollPosition(scroll: number) {
+    this.sEn.data.c = scroll
+    this.sEn.data.t = scroll
+    window.scrollTo(0, this.sEn.data.c);
   }
 
   public setMobileMode(mode: "smooth" | "disable" | "default") {
-    this.mobileScrollMode = mode
+    this.mMode = mode
     this.enableScroll()
   }
 
   public setDesktopMode(mode: "smooth" | "disable" | "default") {
-    this.desktopScrollMode = mode
+    this.dMode = mode
     this.enableScroll()
   }
 
 
   public disableScroll() {
-    this.scrollEngenee = this.scrollEngeneeDisable
+    this.sEn = this.sEnDisable
   }
   public enableScroll() {
     if (w.innerWidth < 1024 || isTouchDevice()) {
-      this.setScrollMode(this.mobileScrollMode)
+      this.setScrollMode(this.mMode)
     } else {
-      this.setScrollMode(this.desktopScrollMode)
+      this.setScrollMode(this.dMode)
     }
   }
 
   public setSpeedAccelerate(speed: number) {
-    this.sAccelerate = speed
-    this.scrollEngeneeDesktop.sAccelerate = speed
-    this.scrollEngeneeDisable.sAccelerate = speed
-    this.scrollEngeneeMobile.sAccelerate = speed
+    this.sEnDesktop.sA = speed
+    this.sEnDisable.sA = speed
+    this.sEnMobile.sA = speed
   }
   public setSpeedDecelerate(speed: number) {
-    this.sDecelerate = speed
-    this.scrollEngeneeDesktop.sDecelerate = speed
-    this.scrollEngeneeDisable.sDecelerate = speed
-    this.scrollEngeneeMobile.sDecelerate = speed
+    this.sEnDesktop.sD = speed
+    this.sEnDisable.sD = speed
+    this.sEnMobile.sD = speed
   }
   public setScrollFactor(factor: number) {
     this.f = factor
     if (isSafari()) {
-      this.scrollEngeneeDesktop.data.cF = this.f * this.sf
+      this.sEnDesktop.data.cF = this.f * this.sf
     } else {
-      this.scrollEngeneeDesktop.data.cF = this.f
+      this.sEnDesktop.data.cF = this.f
     }
   }
   public setSafariFactor(safariFactor: number) {
     this.sf = safariFactor
     if (isSafari()) {
-      this.scrollEngeneeDesktop.data.cF = this.f * this.sf
+      this.sEnDesktop.data.cF = this.f * this.sf
     } else {
-      this.scrollEngeneeDesktop.data.cF = this.f
+      this.sEnDesktop.data.cF = this.f
     }
   }
-  public on(key: string, event: any) {
+  public on(key: "scroll" | "progress" | "intersection" | "scroll-progress", event: any, id: string = "") {
     switch (key) {
       case "scroll":
         this.onScrollEvents.push(event)
         break;
-      default:
+      case "progress":
+
+        if (this.prEvent.has(id) == false) {
+          this.prEvent.set(id, [])
+        }
+        this.prEvent.get(id).push(event)
+
+        break;
+      case "intersection":
+        if (this.intersectionEvent.has(id) == false) {
+          this.intersectionEvent.set(id, [])
+        }
+        this.intersectionEvent.get(id).push(event)
+        break;
+      case "scroll-progress":
+        if (this.prScrollEvent.has(id) == false) {
+          this.prScrollEvent.set(id, [])
+        }
+        this.prScrollEvent.get(id).push(event)
         break;
     }
   }
 
 
   public setScrollMode(mode: "smooth" | "disable" | "default") {
-    this.stateName = mode
     switch (mode) {
       case "smooth":
-        this.scrollEngenee = this.scrollEngeneeDesktop
+        this.sEn = this.sEnDesktop
         break;
       case "default":
-        this.scrollEngenee = this.scrollEngeneeMobile
+        this.sEn = this.sEnMobile
         break;
       case "disable":
-        this.scrollEngenee = this.scrollEngeneeDisable
+        this.sEn = this.sEnDisable
         break;
     }
   }
 
 
 
-  public enableById() {
-
+  public enableById(id: string) {
+    const d = (e: any) => {
+      if (e.id == id) {
+        e.disabled = true
+        e.el.removeAttribute(`${ds}disabled`)
+      }
+    }
+    this.progO.forEach(d)
+    this.parallO.forEach(d)
+    this.actProgO.forEach(d)
   }
   public disableById(id: string) {
-
-    function setDisable(element: any) {
-
-      if (element.id == id) {
-
-        element.disabled = true
-        element.el.setAttribute("data-string-disabled", "")
+    const d = (e: any) => {
+      if (e.id == id) {
+        e.disabled = true
+        e.el.setAttribute(`${ds}disabled`, "")
       }
-
     }
-    this.progressObj.forEach(setDisable)
-    this.parallaxObj.forEach(setDisable)
-    this.activeProgressObj.forEach(setDisable)
-
+    this.progO.forEach(d)
+    this.parallO.forEach(d)
+    this.actProgO.forEach(d)
   }
 
 
-  public enableProgress() {
-    this.isProgressEnable = true
+  public setProgressStatus(status: boolean) {
+    this.isProgress = status
   }
-  public enableSticky() {
-    this.isStickyEnable = true
-  }
-  public enableParallax() {
-    this.isParallaxEnable = true
-  }
-
-  public disableProgress() {
-    this.isProgressEnable = false
-  }
-  public disableSticky() {
-    this.isStickyEnable = false
-  }
-  public disableParallax() {
-    this.isParallaxEnable = false
-  }
-
-  public onStickyEvent(id: string, event: any) {
-    this.stEvent.set(id, event)
-  }
-  public onProgress(id: string, event: any) {
-    if (this.prEvent.has(id) == false) {
-      this.prEvent.set(id, [])
-    }
-    this.prEvent.get(id).push(event)
-
-  }
-  public onScrollProgress(id: string, event: any) {
-    this.prScrollEvent.set(id, event)
-  }
-  public onStartProgress(id: string, event: any) {
-    this.prStartEvent.set(id, event)
-  }
-  public onEndProgress(id: string, event: any) {
-    this.prEndEvent.set(id, event)
-  }
-  public onParallax(id: string, event: any) {
-    this.prxEvent.set(id, event)
-  }
-  public onScrollSticky(id: string, event: any) {
-    this.stScrollEvent.set(id, event)
+  public setParallaxStatus(status: boolean) {
+    this.isParallax = status
   }
 
   private onWheel(e: WheelEvent) {
-    if (this.disableRecalculate) {
+    if (this.disablecalc) {
       e.preventDefault()
       return
     }
-    this.scrollEngenee.onWheel(e)
+    this.sEn.onWheel(e)
   }
 
   private onMutationObserver() {
@@ -554,11 +477,11 @@ class StringScroll {
             h = d.documentElement
           let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
             h.clientHeight, h.scrollHeight, h.offsetHeight)
-          this.scrollEngenee.data.bS = dHeight - this.wHeight
+          this.sEn.data.bS = dHeight - this.wH
           this.initElementsFromDOM()
           this.sendElements()
-          this.onIntersectionObserver()
-          this.recalculate()
+          this.initObserver()
+          this.calc()
 
         }
       });
@@ -574,112 +497,102 @@ class StringScroll {
   }
 
   private onScroll(e: Event) {
-    this.scrollEngenee.onScroll(e)
-    this.recalculate()
+    this.sEn.onScroll(e)
+    this.calc()
     this.onScrollEvents.forEach(scrollEvent => {
       scrollEvent(d.documentElement.scrollTop)
     });
   }
 
-  private onDefaultScroll(e: Event) {
-    this.scrollEngenee.data.c = d.documentElement.scrollTop
-    this.scrollEngenee.data.t = d.documentElement.scrollTop
-    this.recalculate()
-    this.onScrollEvents.forEach(scrollEvent => {
-      scrollEvent(d.documentElement.scrollTop)
+  private initObserver() {
+    this.obs.forEach((o) => {
+      o.disconnect();
     })
-  }
+    this.obs = []
 
-  private onIntersectionObserver() {
-    this.observers.forEach((observer) => {
-      observer.disconnect();
-    })
-    this.observers = []
-
-
-    let callback = (entries: any) => {
-      entries.forEach((entry: any) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("-inview")
+    let callback = (es: any) => {
+      es.forEach((e: any) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("-inview")
+          this.emit(this.intersectionEvent, attr(e.target, `${ds}id`), true)
         } else {
-          if (entry.target.getAttribute('data-string-repeat') != null) {
-            entry.target.classList.remove("-inview")
+          if (attr(e.target, `${ds}repeat`) != null) {
+            e.target.classList.remove("-inview")
+            this.emit(this.intersectionEvent, attr(e.target, `${ds}id`), false)
           }
         }
       })
     }
 
-    this.scrollObj.forEach((target: any) => {
+    this.scrollO.forEach((t: any) => {
       let options = {
         root: null,
-        rootMargin: `${target.oTop * -1}px 0px ${target.oBottom * -1}px 0px`,
+        rootMargin: `${t.oTop}px 0px ${t.oBottom}px 0px`,
         threshold: 0.01,
       }
       let ob = new IntersectionObserver(callback, options)
-      ob.observe(target.el)
-      this.observers.push(ob);
+      ob.observe(t.el)
+      this.obs.push(ob);
     });
 
 
-    let callbackGl = (entries: any) => {
-      entries.forEach((entry: any) => {
-        if (entry.isIntersecting) {
-          if (!this.activeProgressEls.includes(entry.target)) {
-
-            this.activeProgressEls.push(entry.target);
-
+    let callbackGl = (es: any) => {
+      es.forEach((e: any) => {
+        if (e.isIntersecting) {
+          if (!this.actProgE.includes(e.target)) {
+            this.actProgE.push(e.target);
             this.sendElements()
           }
         } else {
-          let index = this.activeProgressEls.indexOf(entry.target);
+          let index = this.actProgE.indexOf(e.target);
           if (index !== -1) {
-            this.activeProgressEls.splice(index, 1);
+            this.actProgE.splice(index, 1);
             this.sendElements()
           }
         }
       })
     }
 
-    this.progressObj.forEach((target: any) => {
+    this.progO.forEach((t: any) => {
       let optionsProgress = {
         root: null,
-        rootMargin: `${target.oTop * 1 + this.wHeight * 1.5}px 0px ${target.oBottom * 1 + this.wHeight * 1.5}px 0px`,
+        rootMargin: `${t.oTop * 1 + this.wH * 1.5}px 0px ${t.oBottom * 1 + this.wH * 1.5}px 0px`,
         threshold: 0.001,
       }
       let obGl = new IntersectionObserver(callbackGl, optionsProgress);
-      obGl.observe(target.el);
-      this.observers.push(obGl);
+      obGl.observe(t.el);
+      this.obs.push(obGl);
 
     });
 
 
 
-    let callbackPrx = (entries: any) => {
-      entries.forEach((entry: any) => {
-        if (entry.isIntersecting) {
-          if (!this.activeParallaxEls.includes(entry.target)) {
-            this.activeParallaxEls.push(entry.target)
+    let callbackPrx = (es: any) => {
+      es.forEach((e: any) => {
+        if (e.isIntersecting) {
+          if (!this.actParallE.includes(e.target)) {
+            this.actParallE.push(e.target)
             this.sendElements()
           }
         } else {
-          let index = this.activeParallaxEls.indexOf(entry.target)
+          let index = this.actParallE.indexOf(e.target)
           if (index !== -1) {
-            this.activeParallaxEls.splice(index, 1)
+            this.actParallE.splice(index, 1)
             this.sendElements()
           }
         }
       })
     }
 
-    this.parallaxObj.forEach((target: any) => {
+    this.parallO.forEach((t: any) => {
       let optionsProgress = {
         root: null,
-        rootMargin: `${target.oTop * 1 + 10}px 0px ${target.oBottom * 1 + 10}px 0px`,
+        rootMargin: `${t.oTop * 1 + 10}px 0px ${t.oBottom * 1 + 10}px 0px`,
         threshold: 0.001,
       }
       let obPrx = new IntersectionObserver(callbackPrx, optionsProgress);
-      obPrx.observe(target.el);
-      this.observers.push(obPrx);
+      obPrx.observe(t.el);
+      this.obs.push(obPrx);
 
     });
 
@@ -688,11 +601,11 @@ class StringScroll {
   }
 
   public overflowHidden() {
-    this.disableRecalculate = true
-    this.overflowCurrent = this.scrollEngenee.data.c
+    this.disablecalc = true
+    this.overflowCurrent = this.sEn.data.c
     const firstChild = document.getElementById('string-scroll-layout') as HTMLElement;
     if (firstChild) {
-      firstChild.style.transform = `translateY(-${this.scrollEngenee.data.c}px)`
+      firstChild.style.transform = `translateY(-${this.sEn.data.c}px)`
     }
   }
 
@@ -701,136 +614,72 @@ class StringScroll {
     if (firstChild) {
       firstChild.style.transform = `translateY(0px)`
     }
-    this.scrollEngenee.data.c = this.overflowCurrent
-    this.scrollEngenee.data.t = this.overflowCurrent
-    this.disableRecalculate = false
+    this.sEn.data.c = this.overflowCurrent
+    this.sEn.data.t = this.overflowCurrent
+    this.disablecalc = false
     setTimeout(() => {
-      window.scrollTo(0, this.scrollEngenee.data.c);
+      window.scrollTo(0, this.sEn.data.c);
     }, 10);
   }
 
   private onAnimationFrame() {
     let reqAnim = () => {
-      this.scrollEngenee.onAnimationFrame()
-      this.lerpEls.forEach((elemet: any, index: number) => {
-        this.lerpEls[index].style.setProperty('--scroll-lerp', Math.abs(this.scrollEngenee.velocity))
+      this.sEn.onAnimationFrame()
+      this.lerpE.forEach((e: any, i: number) => {
+        this.lerpE[i].style.setProperty('--scroll-lerp', Math.abs(this.sEn.v))
       });
+      if (this.isParallax) {
+        this.actParallO.forEach((el: any) => {
+          if (el.disabled) { return }
+          el.progress += this.sEn.v
+          el.el.style.transform = `translateY(${el.progress * el.parallaxFactor}px)`
+          el.el.setAttribute("data-string-parallax-progress", el.progress)
+        })
+      }
       requestAnimationFrame(reqAnim);
     }
     requestAnimationFrame(reqAnim);
   }
 
-  private recalculate() {
-    if (this.disableRecalculate) {
+  private calc() {
+    if (this.disablecalc) {
       return
     }
-    if (this.isStickyEnable) {
-      this.stickyObj.forEach((el: any) => {
+
+    if (this.isProgress) {
+      this.actProgO.forEach((el: any) => {
         if (el.disabled) { return }
-        let parentBox = gbcl(el.parent)
-        let p = 0
-        let elementTop = getCoords(el.parent).top - this.scrollEngenee.data.c;
-        let elementBottom = elementTop + parentBox.height;
-        if (elementBottom < 0) {
-          p = 1;
-        } else if (elementTop > this.wHeight) {
-          p = 0;
-        } else {
-          p = 1 - (elementBottom / (parentBox.height + this.wHeight));
-        }
-        el.el.style.setProperty('--string-sticky-progress', p)
-        this.eStic(el.id, p)
-      })
-    }
-
-    if (this.isProgressEnable) {
-      this.activeProgressObj.forEach((el: any) => {
-        if (el.disabled) { return }
-
-        let v = (this.scrollEngenee.data.c - el.startProgressPosition) / (el.endProgressPosition - el.startProgressPosition);
-
-        if (v > 1) {
-          v = 1
-          this.eEndProg(el.id, v)
-        }
-        if (v < 0) {
-          v = 0
-          this.eStartProg(el.id, v)
-        }
+        let v = Math.min(1, Math.max(0, (this.sEn.data.c - el.startPos) / (el.endPos - el.startPos)));
         el.el.style.setProperty('--string-progress', v)
         if (el.oldValue != v) {
-          if (this.prEvent.has(el.id)) {
-            this.prEvent.get(el.id).forEach((element: any) => {
-              element(v)
-            });
-          }
+          el.connectEvent.forEach((event: any) => {
+            event(v)
+          });
+          this.emit(this.prEvent, el.id, v)
+          el.oldValue = v
         }
-        this.eScrollProg(el.id, el.oTop - this.scrollEngenee.data.c + this.wHeight)
-        el.oldValue = v
-        el.connectEvent.forEach((event: any) => {
-          event(v)
-        });
+        this.emit(this.prScrollEvent, el.id, el.oTop - this.sEn.data.c + this.wH)
+
       })
     }
 
-    if (this.isParallaxEnable) {
-      this.activeParallaxObj.forEach((el: any) => {
-        if (el.disabled) { return }
-        let v = (this.scrollEngenee.data.c - el.startProgressPosition) / (el.endProgressPosition - el.startProgressPosition)
-        if (v > 1) {
-          v = 1
-        }
-        if (v < 0) {
-          v = 0
-        }
-        el.el.style.transform = `translateY(${v * el.parallaxFactor * this.wHeight}px)`;
-        this.eParallax(el.id, v)
-      })
+  }
+
+  private emit(list: any, id: string, value: any) {
+
+    if (list.has(id)) {
+      list.get(id).forEach((event: any) => {
+        event(value)
+      });
     }
   }
 
-  private eStic(id: string, progress: number) {
-    if (this.stEvent.has(id)) {
-      this.stEvent.get(id)(progress)
-    }
-  }
-  private eScrollProg(id: string, progress: number) {
-    if (this.prScrollEvent.has(id)) {
-      this.prScrollEvent.get(id)(progress)
-    }
-  }
-  private eStartProg(id: string, progress: number) {
-    if (this.prStartEvent.has(id)) {
-      this.prStartEvent.get(id)(progress)
-    }
-  }
-  private eEndProg(id: string, progress: number) {
-    if (this.prEndEvent.has(id)) {
-      this.prEndEvent.get(id)(progress)
-    }
-  }
-  private eParallax(id: string, progress: number) {
-    if (this.prxEvent.has(id)) {
-      this.prxEvent.get(id)(progress)
-    }
-  }
 
   private sendElements() {
-    this.stickyObj = Array.from(this.stickyEls).map((el: any) => {
-      return {
-        el: el,
-        top: el.getAttribute("data-offset-top"),
-        height: el.getAttribute("data-offset-height"),
-        disabled: el.getAttribute("data-string-disabled") == null ? false : true,
-        id: el.getAttribute("data-string-id"),
-        parent: el == null ? null : el.parentNode,
-      }
-    })
-
-    this.progressObj = Array.from(this.progressEls).map((el: any) => {
-      var r = gbcl(el)
-      var oA = el.getAttribute('data-string-offset')
-      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
+    this.progO = Array.from(this.progE).map((el: any) => {
+      let r = gbcl(el)
+      let oA = attr(el, `${ds}offset`)
+      let o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wH)
       return {
         el: el,
         oTop: o[0],
@@ -839,79 +688,84 @@ class StringScroll {
     })
 
 
-    this.activeProgressObj = Array.from(this.activeProgressEls).filter((el: any) => {
-      return el.getAttribute('data-string-connect') == null
+    this.actProgO = Array.from(this.actProgE).filter((el: any) => {
+      return attr(el, `${ds}connect`) == null
     }).map((el: any) => {
-      var r = gbcl(el)
-      var oA = el.getAttribute('data-string-offset')
-      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
+      let r = gbcl(el)
+      let oA = attr(el, `${ds}offset`)
+      let o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wH)
+      let rH = r.height
 
-      let elementData = {
+      let data = {
         el: el,
         top: getCoords(el).top,
-        bottom: getCoords(el).top + r.height,
-        height: r.height,
+        bottom: getCoords(el).top + rH,
+        height: rH,
         oTop: o[0],
         oBottom: o[1],
-        start: el.getAttribute("data-string-start") == null ? 1 : el.getAttribute("data-string-start"),
-        end: el.getAttribute("data-string-end") == null ? 1 : el.getAttribute("data-string-end"),
-        id: el.getAttribute("data-string-id"),
-        disabled: el.getAttribute("data-string-disabled") == null ? false : true,
+        start: attr(el, `${ds}start`, 1),
+        end: attr(el, `${ds}end`, 1),
+        id: attr(el, `${ds}id`),
+        disabled: attr(el, `${ds}disabled`) == null ? false : true,
         oldValue: 0,
-        divisor: this.wHeight - o[0] - o[1] - r.height,
-        divisorFull: r.height + this.wHeight,
-        startProgressPosition: 1,
-        endProgressPosition: 1,
+        divisor: this.wH - o[0] - o[1] - rH,
+        divisorFull: rH + this.wH,
+        startPos: 1,
+        endPos: 1,
         connectEvent: new Array<any>()
       }
 
 
-      let startPosition = el.getAttribute("data-string-start") || "top bottom";
-      let endPosition = el.getAttribute("data-string-end") || "bottom top";
+      let startPosition = attr(el, `${ds}start`) || "top bottom";
+      let endPosition = attr(el, `${ds}end`) || "bottom top";
 
-      let [startElPos, startScreenPos] = startPosition.split(" ");
-      let [endElPos, endScreenPos] = endPosition.split(" ");
+      let [sElPos, sScrPos] = startPosition.split(" ");
+      let [eElPos, eScrPos] = endPosition.split(" ");
 
-      if (startElPos == "top" && startScreenPos == "top") {
-        elementData.startProgressPosition = elementData.top - elementData.oTop
-      }
-      if (startElPos == "top" && startScreenPos == "bottom") {
-        elementData.startProgressPosition = elementData.top - elementData.oTop - this.wHeight
-      }
-      if (startElPos == "bottom" && startScreenPos == "top") {
-        elementData.startProgressPosition = elementData.top + elementData.height + elementData.oBottom
-      }
-      if (startElPos == "bottom" && startScreenPos == "bottom") {
-        elementData.startProgressPosition = elementData.top + elementData.height + elementData.oBottom - this.wHeight
-      }
+      let p1 = data.top - data.oTop,
+        p2 = data.top - data.oTop - this.wH,
+        p3 = data.top + data.height + data.oBottom,
+        p4 = data.top + data.height + data.oBottom - this.wH
 
-
-      if (endElPos == "top" && endScreenPos == "top") {
-        elementData.endProgressPosition = elementData.top - elementData.oTop
+      if (sElPos == tS && sScrPos == tS) {
+        data.startPos = p1
       }
-      if (endElPos == "top" && endScreenPos == "bottom") {
-        elementData.endProgressPosition = elementData.top - elementData.oTop - this.wHeight
+      if (sElPos == tS && sScrPos == bS) {
+        data.startPos = p2
       }
-      if (endElPos == "bottom" && endScreenPos == "top") {
-        elementData.endProgressPosition = elementData.top + elementData.height + elementData.oBottom
+      if (sElPos == bS && sScrPos == tS) {
+        data.startPos = p3
       }
-      if (endElPos == "bottom" && endScreenPos == "bottom") {
-        elementData.endProgressPosition = elementData.top + elementData.height + elementData.oBottom - this.wHeight
+      if (sElPos == bS && sScrPos == bS) {
+        data.startPos = p4
       }
 
-      return elementData
+
+      if (eElPos == tS && eScrPos == tS) {
+        data.endPos = p1
+      }
+      if (eElPos == tS && eScrPos == bS) {
+        data.endPos = p2
+      }
+      if (eElPos == bS && eScrPos == tS) {
+        data.endPos = p3
+      }
+      if (eElPos == bS && eScrPos == bS) {
+        data.endPos = p4
+      }
+
+      return data
 
     })
 
 
-    Array.from(this.activeProgressEls).forEach((el: any) => {
-      if (el.getAttribute('data-string-connect') != null) {
-
-        let findedElement = this.activeProgressObj.find((elFind: any) => {
-          return elFind.id == el.getAttribute('data-string-connect')
+    Array.from(this.actProgE).forEach((el: any) => {
+      if (attr(el, `${ds}connect`) != null) {
+        let find = this.actProgO.find((elFind: any) => {
+          return elFind.id == attr(el, `${ds}connect`)
         })
-        if (findedElement != null) {
-          findedElement.connectEvent.push((progress: number) => {
+        if (find != null) {
+          find.connectEvent.push((progress: number) => {
             el.style.setProperty('--string-progress', progress)
           })
         }
@@ -919,11 +773,9 @@ class StringScroll {
     })
 
 
-    this.parallaxObj = Array.from(this.parralaxEls).map((el: any) => {
-
-      var r = gbcl(el)
-      var oA = el.getAttribute('data-string-offset')
-      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
+    this.parallO = Array.from(this.parallE).map((el: any) => {
+      let oA = attr(el, `${ds}offset`)
+      let o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wH)
       return {
         el: el,
         oTop: o[0],
@@ -931,69 +783,72 @@ class StringScroll {
       };
     })
 
-    this.activeParallaxObj = Array.from(this.activeParallaxEls).filter((el: any) => {
-      return el.getAttribute('data-string-connect') == null
+    this.actParallO = Array.from(this.actParallE).filter((el: any) => {
+      return attr(el, `${ds}connect`) == null
     }).map((el: any) => {
-      if (el.getAttribute('data-string-connect') == null) {
+      if (attr(el, `${ds}connect`) == null) {
 
-        var r = gbcl(el)
-        var oA = el.getAttribute('data-string-offset')
-        var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
-        var pF = el.getAttribute('data-string-parallax')
-        let elementData = {
+        let r = gbcl(el)
+        let oA = attr(el, `${ds}offset`)
+        let o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wH)
+        let pF = attr(el, `${ds}parallax`)
+        let rH = r.height
+        let data = {
           el: el,
           top: getCoords(el).top,
-          bottom: getCoords(el).top + r.height,
-          height: r.height,
+          bottom: getCoords(el).top + rH,
+          height: rH,
           oTop: o[0],
           oBottom: o[1],
-          start: el.getAttribute("data-string-start") == null ? 1 : el.getAttribute("data-string-start"),
-          end: el.getAttribute("data-string-end") == null ? 1 : el.getAttribute("data-string-end"),
-          id: el.getAttribute("data-string-id"),
-          disabled: el.getAttribute("data-string-disabled") == null ? false : true,
+          start: attr(el, `${ds}start`, 1),
+          end: attr(el, `${ds}end`, 1),
+          id: attr(el, `${ds}id`),
+          disabled: attr(el, `${ds}disabled`) == null ? false : true,
           parallaxFactor: pF,
+          progress: attr(el, "data-string-parallax-progress") == null ? 0 : Number.parseFloat(attr(el, "data-string-parallax-progress")),
+          oldV: 0,
           oldValue: 0,
-          divisor: this.wHeight - o[0] - o[1] - r.height,
-          divisorFull: r.height + this.wHeight,
-          startProgressPosition: 1,
-          endProgressPosition: 1
+          divisor: this.wH - o[0] - o[1] - rH,
+          divisorFull: rH + this.wH,
+          startPos: 1,
+          endPos: 1
         }
-        elementData.startProgressPosition = elementData.top - this.wHeight
-          + (elementData.start * (elementData.height + elementData.oTop) - ((1 - elementData.start) * elementData.oTop));
-        elementData.endProgressPosition = elementData.top
-          + (elementData.end * (elementData.height + elementData.oBottom) - ((1 - elementData.end) * elementData.oBottom));
+        data.startPos = data.top - this.wH
+          + (data.start * (data.height + data.oTop) - ((1 - data.start) * data.oTop));
+        data.endPos = data.top
+          + (data.end * (data.height + data.oBottom) - ((1 - data.end) * data.oBottom));
 
-        return elementData
+        return data
       }
     })
 
-    Array.from(this.activeParallaxEls).forEach((el: any) => {
-      if (el.getAttribute('data-string-connect') != null) {
+    Array.from(this.actParallE).forEach((el: any) => {
+      if (attr(el, `${ds}connect`) != null) {
 
-        let findedElement = this.activeProgressObj.find((elFind: any) => {
-          return elFind.id == el.getAttribute('data-string-connect')
+        let cEl = this.actProgO.find((elFind: any) => {
+          return elFind.id == attr(el, `${ds}connect`)
         })
-        var pF = el.getAttribute('data-string-parallax')
-        if (findedElement != null) {
-          findedElement.connectEvent.push((progress: number) => {
-            el.style.transform = `translateY(${progress * pF * this.wHeight}px)`;
+        let pF = attr(el, `${ds}parallax`)
+        if (cEl != null) {
+          cEl.connectEvent.push((progress: number) => {
+            el.style.transform = `translateY(${progress * pF * this.wH}px)`;
           })
         }
       }
     })
 
 
-    this.scrollObj = Array.from(this.scrollEls).map((el: any) => {
-      var r = gbcl(el)
-      var oA = el.getAttribute('data-string-offset')
-      var o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wHeight)
+    this.scrollO = Array.from(this.scrollE).map((el: any) => {
+      let r = gbcl(el)
+      let oA = attr(el, `${ds}offset`)
+      let o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wH)
       return {
         el: el,
         top: getCoords(el).top,
         height: r.height,
         oTop: o[0],
         oBottom: o[1],
-        disabled: el.getAttribute("data-string-disabled") == null ? false : true,
+        disabled: attr(el, `${ds}disabled`) == null ? false : true,
       };
     })
 
@@ -1003,52 +858,46 @@ class StringScroll {
   }
 
   private initEl(el: any, isProgress: boolean = false) {
-    var r = gbcl(el)
+    let r = gbcl(el)
     if (isProgress) {
       el.style.setProperty('--string-progress', 0);
       el.setAttribute("data-offset-top", getCoords(el).top)
       el.setAttribute("data-offset-height", r.height)
     }
-    var org = el.getAttribute('data-string-origin')
+    let org = attr(el, `${ds}origin`)
     if (org != null) {
       el.style.transformOrigin = this.parser.parseOrigin(org)
     }
   }
 
   public onResize() {
-    this.stickyEls.forEach((el: any) => {
+    this.progE.forEach((el: any) => {
       this.initEl(el, true)
     })
-    this.progressEls.forEach((el: any) => {
-      this.initEl(el, true)
-    })
-    this.scrollEls.forEach((el: any) => {
+    this.scrollE.forEach((el: any) => {
       this.initEl(el)
     })
     this.sendElements()
     if (w.innerWidth < 1024 || isTouchDevice()) {
-      this.setScrollMode(this.mobileScrollMode)
+      this.setScrollMode(this.mMode)
     }
     else {
-      this.setScrollMode(this.desktopScrollMode)
+      this.setScrollMode(this.dMode)
     }
-    if (this.wWidth != w.innerWidth) {
-      this.wWidth = w.innerWidth
-      this.wHeight = w.innerHeight
+    if (this.wW != w.innerWidth) {
+      this.wW = w.innerWidth
+      this.wH = w.innerHeight
     }
     let b = d.body,
       h = d.documentElement
     let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
       h.clientHeight, h.scrollHeight, h.offsetHeight)
-    this.scrollEngenee.data.bS = dHeight - this.wHeight
-    this.onIntersectionObserver()
+    this.sEn.data.bS = dHeight - this.wH
+    this.initObserver()
 
-    //this.scrollEngenee.onScroll()
-    this.recalculate()
+    //this.sEn.onScroll()
+    this.calc()
 
   }
 }
 
-
-
-export default StringScroll
