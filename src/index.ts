@@ -526,9 +526,7 @@ export class StringScroll {
 
     this.scrollO.forEach((t: any) => {
       let options = {
-        root: null,
         rootMargin: `${t.oTop}px 0px ${t.oBottom}px 0px`,
-        threshold: 0.01,
       }
       let ob = new IntersectionObserver(callback, options)
       ob.observe(t.el)
