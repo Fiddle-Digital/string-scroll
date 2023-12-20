@@ -60,6 +60,7 @@ export declare class StringScroll {
     overflowAuto(): void;
     private onAnimationFrame;
     private calc;
+    private hasEvent;
     private emit;
     private sendElements;
     private initEl;
