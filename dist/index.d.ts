@@ -38,6 +38,7 @@ export declare class StringScroll {
     static getInstance(): StringScroll;
     private initElementsFromDOM;
     setScrollPosition(scroll: number): void;
+    scrollTo(scroll: number): void;
     setMobileMode(mode: "smooth" | "disable" | "default"): void;
     setDesktopMode(mode: "smooth" | "disable" | "default"): void;
     disableScroll(): void;
@@ -53,6 +54,7 @@ export declare class StringScroll {
     setProgressStatus(status: boolean): void;
     setParallaxStatus(status: boolean): void;
     private onWheel;
+    forceUpdateParallax(): void;
     private onMutationObserver;
     private onScroll;
     private initObserver;

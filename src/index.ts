@@ -359,6 +359,19 @@ export class StringScroll {
     document.documentElement.classList.add("string-scroll")
     document.documentElement.classList.add("string-smoothy")
 
+    const style = document.createElement('style');
+    style.id = 'hide-scrollbar-style';
+    style.textContent = `
+        .-without-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .-without-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+    `;
+    document.head.appendChild(style);
+
 
   }
 
@@ -382,12 +395,26 @@ export class StringScroll {
     window.scrollTo(0, this.sEn.data.c);
   }
 
+  public scrollTo(scroll: number) {
+    this.sEn.data.t = scroll
+  }
+
   public setMobileMode(mode: "smooth" | "disable" | "default") {
+    if (mode == "disable") {
+      document.documentElement.classList.add(`-without-scrollbar`)
+    } else {
+      document.documentElement.classList.remove(`-without-scrollbar`)
+    }
     this.mMode = mode
     this.enableScroll()
   }
 
   public setDesktopMode(mode: "smooth" | "disable" | "default") {
+    if (mode == "disable") {
+      document.documentElement.classList.add(`-without-scrollbar`)
+    } else {
+      document.documentElement.classList.remove(`-without-scrollbar`)
+    }
     this.dMode = mode
     this.enableScroll()
   }
@@ -460,15 +487,27 @@ export class StringScroll {
 
 
   public setScrollMode(mode: "smooth" | "disable" | "default") {
+
+    document.documentElement.classList.remove("-smooth")
+    document.documentElement.classList.remove("-default")
+    document.documentElement.classList.remove("-disable")
+
     switch (mode) {
       case "smooth":
         this.sEn = this.sEnDesktop
+        this.isParallax = true
+        document.documentElement.classList.add("-smooth")
         break;
       case "default":
         this.sEn = this.sEnMobile
+        this.isParallax = false
+        document.documentElement.classList.add("-default")
         break;
       case "disable":
+        this.sEnDisable.v = this.sEn.v
+        this.sEnDisable.data = this.sEn.data
         this.sEn = this.sEnDisable
+        document.documentElement.classList.add("-disable")
         break;
     }
   }
@@ -516,10 +555,25 @@ export class StringScroll {
     this.sEn.onWheel(e)
   }
 
+  public forceUpdateParallax() {
+    setTimeout(() => {
+      let b = d.body,
+        h = d.documentElement
+      let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
+        h.clientHeight, h.scrollHeight, h.offsetHeight)
+      this.sEn.data.bS = dHeight - this.wH
+      this.initElementsFromDOM()
+      this.sendElements(true)
+      this.initObserver()
+      this.calc()
+    }, 300);
+  }
+
   private onMutationObserver() {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === "childList") {
+
           let b = d.body,
             h = d.documentElement
           let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
@@ -529,6 +583,7 @@ export class StringScroll {
           this.sendElements()
           this.initObserver()
           this.calc()
+
 
         }
       });
@@ -541,6 +596,23 @@ export class StringScroll {
     };
 
     observer.observe(document.body, config);
+
+
+    window.addEventListener('hashchange', () => {
+      console.log('location change')
+      let b = d.body,
+        h = d.documentElement
+      let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
+        h.clientHeight, h.scrollHeight, h.offsetHeight)
+      this.sEn.data.bS = dHeight - this.wH
+      this.initElementsFromDOM()
+      this.sendElements(true)
+      this.initObserver()
+      this.calc()
+    });
+
+
+
   }
 
   private onScroll(e: Event) {
@@ -722,7 +794,7 @@ export class StringScroll {
     }
   }
 
-  private sendElements() {
+  private sendElements(isForce: boolean = false) {
     this.progO = Array.from(this.progE).map((el: any) => {
       let oA = attr(el, `${ds}offset`)
       let o = oA == null ? [0, 0] : this.parser.parseOffset(el, oA, this.wH)
@@ -855,7 +927,7 @@ export class StringScroll {
             id: attr(el, `${ds}id`),
             disabled: attr(el, `${ds}disabled`) == null ? false : true,
             parallaxFactor: pF,
-            progress: attr(el, PARALLAX_PROGRESS_DATA) == null ? 0 : Number.parseFloat(attr(el, PARALLAX_PROGRESS_DATA)),
+            progress: (attr(el, PARALLAX_PROGRESS_DATA) == null || isForce) ? 0 : Number.parseFloat(attr(el, PARALLAX_PROGRESS_DATA)),
             oldV: 0,
             oldValue: 0,
             divisor: this.wH - o[0] - o[1] - rH,
