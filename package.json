@@ -1,6 +1,6 @@
 {
   "name": "@fiddle-digital/string-scroll",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "StringScroll is a JavaScript library designed for sophisticated scrolling and animation control on web pages. It provides advanced capabilities for managing parallax effects, scroll-based animations, and more, offering a comprehensive solution for creating interactive and visually appealing web experiences.",
   "keywords": [
     "scroll",

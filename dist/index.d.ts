@@ -1,4 +1,4 @@
-export declare class StringScroll {
+export default class StringScroll {
     private static i;
     private wH;
     private wW;
@@ -8,15 +8,21 @@ export declare class StringScroll {
     private lerpE;
     private scrollE;
     private parallE;
+    private conE;
+    private progIndx;
+    private parallIndx;
     private progO;
     private actProgO;
+    private actProgOA;
     private scrollO;
-    private actParallO;
     private parallO;
+    private actParallO;
+    private actParallOA;
     private onScrollEvents;
     private intersectionEvent;
     private prEvent;
     private prScrollEvent;
+    private lrpEvent;
     private obs;
     private sf;
     private f;
@@ -36,6 +42,8 @@ export declare class StringScroll {
     IsAutoupdateScrollPosition: boolean;
     private constructor();
     static getInstance(): StringScroll;
+    private createStringProgressObject;
+    private createStringParallaxObject;
     private initElementsFromDOM;
     setScrollPosition(scroll: number): void;
     scrollTo(scroll: number): void;
@@ -47,7 +55,7 @@ export declare class StringScroll {
     setSpeedDecelerate(speed: number): void;
     setScrollFactor(factor: number): void;
     setSafariFactor(safariFactor: number): void;
-    on(key: "scroll" | "progress" | "intersection" | "scroll-progress", event: any, id?: string): void;
+    on(key: "scroll" | "progress" | "intersection" | "scroll-progress" | "lerp", event: any, id?: string): void;
     setScrollMode(mode: "smooth" | "disable" | "default"): void;
     enableById(id: string): void;
     disableById(id: string): void;
@@ -60,11 +68,11 @@ export declare class StringScroll {
     private initObserver;
     overflowHidden(): void;
     overflowAuto(): void;
+    private teset;
     private onAnimationFrame;
     private calc;
     private hasEvent;
     private emit;
-    private sendElements;
     private initEl;
     onResize(): void;
 }
