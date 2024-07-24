@@ -1,12 +1,21 @@
-import { StringAnimation } from "./Animations/StringAnimation"
 import { EventManager } from "./EventManager"
 import { StringScrollObject } from "./Objects/StringScrollObject"
 import { iStringScroll } from "./ScrollTypes/iStringScroll"
 import { StringScrollDefault } from "./ScrollTypes/StringScrollDefault"
 import { StringScrollDisable } from "./ScrollTypes/StringScrollDisable"
 import { StringScrollSmooth } from "./ScrollTypes/StringScrollSmooth"
-import { StringTracker } from "./Tracker/StringTracker"
+
+import { StringAnimation } from "./Animations/StringAnimation"
+import { StringAnimationData } from "./Animations/StringAnimationData"
+import { StringLerpAnimation } from "./Animations/StringLerpAnimation"
+import { StringParallaxAnimation } from "./Animations/StringParallaxAnimation"
+import { StringProgressAnimation } from "./Animations/StringProgressAnimation"
+import { StringShowAnimation } from "./Animations/StringShowAnimation"
 import { StringScrollbar } from "./Scrollbar/StringScrollbar"
+import { StringTracker } from "./Tracker/StringTracker"
+import { StringScrollData } from "./StringScrollData"
+
+
 
 let d: any = null
 let w: any = null
@@ -14,7 +23,7 @@ function isTouchDevice() {
   return (('ontouchstart' in window) ||
     (navigator.maxTouchPoints > 0));
 }
-export default class StringScroll {
+class StringScroll {
   private static i: StringScroll;
   private wH: number
   private wW: number
@@ -397,3 +406,16 @@ export default class StringScroll {
   }
 }
 
+export {
+	StringScroll as StringScroll,
+	StringScroll as default,
+  StringAnimation,
+  StringAnimationData,
+  StringLerpAnimation,
+  StringParallaxAnimation,
+  StringProgressAnimation,
+  StringShowAnimation,
+  StringScrollbar,
+  StringTracker,
+  StringScrollData,
+};

@@ -1,6 +1,6 @@
 {
   "name": "@fiddle-digital/string-scroll",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "StringScroll is a JavaScript library designed for sophisticated scrolling and animation control on web pages. It provides advanced capabilities for managing parallax effects, scroll-based animations, and more, offering a comprehensive solution for creating interactive and visually appealing web experiences.",
   "keywords": [
     "scroll",
@@ -33,9 +33,23 @@
     "type": "git",
     "url": "https://github.com/Fiddle-Digital/string-scroll"
   },
-  "main": "./dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./StringAnimation": "./dist/StringAnimation.js",
+    "./StringAnimationData": "./dist/StringAnimationData.js",
+    "./StringLerpAnimation": "./dist/StringLerpAnimation.js",
+    "./StringParallaxAnimation": "./dist/StringParallaxAnimation.js",
+    "./StringProgressAnimation": "./dist/StringProgressAnimation.js",
+    "./StringShowAnimation": "./dist/StringShowAnimation.js",
+    "./StringScrollbar": "./dist/StringScrollbar.js",
+    "./StringTracker": "./dist/StringTracker.js",
+    "./StringScrollData": "./dist/StringScrollData.js"
+  },
   "scripts": {
     "build": "webpack",
     "minify": "terser dist/index.js --compress --mangle -o dist/index.js"

@@ -1,7 +1,13 @@
 import { StringAnimation } from "./Animations/StringAnimation";
-import { StringTracker } from "./Tracker/StringTracker";
+import { StringAnimationData } from "./Animations/StringAnimationData";
+import { StringLerpAnimation } from "./Animations/StringLerpAnimation";
+import { StringParallaxAnimation } from "./Animations/StringParallaxAnimation";
+import { StringProgressAnimation } from "./Animations/StringProgressAnimation";
+import { StringShowAnimation } from "./Animations/StringShowAnimation";
 import { StringScrollbar } from "./Scrollbar/StringScrollbar";
-export default class StringScroll {
+import { StringTracker } from "./Tracker/StringTracker";
+import { StringScrollData } from "./StringScrollData";
+declare class StringScroll {
     private static i;
     private wH;
     private wW;
@@ -57,3 +63,4 @@ export default class StringScroll {
     private onAnimationFrame;
     onResize(): void;
 }
+export { StringScroll as StringScroll, StringScroll as default, StringAnimation, StringAnimationData, StringLerpAnimation, StringParallaxAnimation, StringProgressAnimation, StringShowAnimation, StringScrollbar, StringTracker, StringScrollData, };
