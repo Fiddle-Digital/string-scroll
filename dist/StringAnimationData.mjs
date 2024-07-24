@@ -1,0 +1,1 @@
+var t={d:function(r,e){for(var n in e)t.o(e,n)&&!t.o(r,n)&&Object.defineProperty(r,n,{enumerable:!0,get:e[n]})},o:function(t,r){return Object.prototype.hasOwnProperty.call(t,r)}},r={};t.d(r,{l:function(){return e}});class e{constructor(){this.current=0,this.target=0,this.value=0}}var n=r.l;export{n as StringAnimationData};

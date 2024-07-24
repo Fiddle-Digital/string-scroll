@@ -23,7 +23,17 @@ module.exports = [
     }
   },
   {
-    entry: './src/index.ts',
+    entry: {
+      'StringAnimation': './src/Animations/StringAnimation.ts',
+      'StringAnimationData': './src/Animations/StringAnimationData.ts',
+      'StringLerpAnimation': './src/Animations/StringLerpAnimation.ts',
+      'StringParallaxAnimation': './src/Animations/StringParallaxAnimation.ts',
+      'StringProgressAnimation': './src/Animations/StringProgressAnimation.ts',
+      'StringShowAnimation': './src/Animations/StringShowAnimation.ts',
+      'StringScrollbar': './src/Scrollbar/StringScrollbar.ts',
+      'StringTracker': './src/Tracker/StringTracker.ts',
+      'StringScrollData': './src/StringScrollData.ts'
+    },
     mode: 'production',
     module: {
       rules: [
@@ -38,7 +48,38 @@ module.exports = [
       extensions: ['.ts', '.js'],
     },
     output: {
-      filename: 'index.esm.js',
+      filename: '[name].js',
+      path: path.resolve(__dirname, 'dist'),
+      libraryTarget: 'commonjs2'
+    }
+  },
+  {
+    entry: {
+      'StringAnimation': './src/Animations/StringAnimation.ts',
+      'StringAnimationData': './src/Animations/StringAnimationData.ts',
+      'StringLerpAnimation': './src/Animations/StringLerpAnimation.ts',
+      'StringParallaxAnimation': './src/Animations/StringParallaxAnimation.ts',
+      'StringProgressAnimation': './src/Animations/StringProgressAnimation.ts',
+      'StringShowAnimation': './src/Animations/StringShowAnimation.ts',
+      'StringScrollbar': './src/Scrollbar/StringScrollbar.ts',
+      'StringTracker': './src/Tracker/StringTracker.ts',
+      'StringScrollData': './src/StringScrollData.ts'
+    },
+    mode: 'production',
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.ts', '.js'],
+    },
+    output: {
+      filename: '[name].esm.js',
       path: path.resolve(__dirname, 'dist'),
       libraryTarget: 'module'
     },
@@ -48,7 +89,17 @@ module.exports = [
     target: ['web', 'browserslist: > 0.5%, not dead']
   },
   {
-    entry: './src/index.ts',
+    entry: {
+      'StringAnimation': './src/Animations/StringAnimation.ts',
+      'StringAnimationData': './src/Animations/StringAnimationData.ts',
+      'StringLerpAnimation': './src/Animations/StringLerpAnimation.ts',
+      'StringParallaxAnimation': './src/Animations/StringParallaxAnimation.ts',
+      'StringProgressAnimation': './src/Animations/StringProgressAnimation.ts',
+      'StringShowAnimation': './src/Animations/StringShowAnimation.ts',
+      'StringScrollbar': './src/Scrollbar/StringScrollbar.ts',
+      'StringTracker': './src/Tracker/StringTracker.ts',
+      'StringScrollData': './src/StringScrollData.ts'
+    },
     mode: 'production',
     module: {
       rules: [
@@ -63,7 +114,7 @@ module.exports = [
       extensions: ['.ts', '.js', '.mjs'],
     },
     output: {
-      filename: 'index.mjs',
+      filename: '[name].mjs',
       path: path.resolve(__dirname, 'dist'),
       libraryTarget: 'module'
     },
@@ -72,5 +123,4 @@ module.exports = [
     },
     target: ['web', 'browserslist: > 0.5%, not dead']
   }
-
 ];
