@@ -63,7 +63,7 @@ export class StringAnimation{
     return this.objectsMap.has(id) ? this.objectsMap.get(id) : undefined
   }
   init(){
-    let progE = document.querySelectorAll(`[${this._key}]:not([data-string-connect]):not([data-string-inited])`)
+    let progE = document.querySelectorAll(`[${this._key}]:not([data-string-connect]):not([${this._key}-inited])`)
     Array.from(progE)
     .forEach((el: any) => {
       this.addObject(el)
@@ -101,7 +101,7 @@ export class StringAnimation{
     let wH = window.innerHeight
     el.setAttribute(`data-string-id`, attr(el, `data-string-id`, `string-progress-${this.id}`))
     el.classList.add(attr(el, `data-string-id`, `string-progress-${this.id}`))
-    el.setAttribute(`data-string-inited`, true)
+    el.setAttribute(`${this._key}-inited`, true)
     let stringObject = new StringScrollObject(el, this.progressKey, this.progressFactorKey, this.bufferProgressKey)
     this.allObjects.set(attr(el, `data-string-id`), stringObject)
     this.objectsMap.set(attr(el, `data-string-id`), stringObject)

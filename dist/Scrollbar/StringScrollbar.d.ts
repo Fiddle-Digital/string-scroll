@@ -2,6 +2,7 @@ export declare class StringScrollbar {
     private scrollbar;
     private thumb;
     private scrollTimeout;
+    private isScrollbarWillShow;
     constructor();
     private addCustomStyles;
     private createScrollbar;

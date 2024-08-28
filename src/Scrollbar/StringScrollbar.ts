@@ -2,6 +2,9 @@ export class StringScrollbar {
     private scrollbar: any;
     private thumb: any;
     private scrollTimeout: any;
+
+    private isScrollbarWillShow = true
+
     constructor() {
         this.createScrollbar();
         this.updateThumb();
@@ -40,13 +43,18 @@ export class StringScrollbar {
         const visibleHeight = window.innerHeight;
         const thumbHeight = visibleHeight / contentHeight * visibleHeight;
         this.thumb.style.setProperty('--height', thumbHeight + 'px');
+
+        if (contentHeight <= visibleHeight) {
+            this.scrollbar.classList.add('-hide')
+        } else {
+            this.scrollbar.classList.remove('-hide')
+        }
     }
 
     private updateThumb() {
         const contentHeight = document.documentElement.scrollHeight;
         const visibleHeight = window.innerHeight;
         this.thumb.style.setProperty('--position', `${(document.documentElement.scrollTop / contentHeight * visibleHeight) + 'px'}`)
-        //this.thumb.style.transform = `translateY(${(document.documentElement.scrollTop / contentHeight * visibleHeight) + 'px'})`;
     }
 
     private addDragFunctionality() {

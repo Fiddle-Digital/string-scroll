@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>String Scroll</title>
+</head>
+
+<body>
+
+  <div class="progress-block">
+    <div class="progress-block-1" data-string data-string-repeat data-string-progress></div>
+  </div>
+
+  <script src="../dist/index.js"></script>
+  <script>
+    const stringInstance = StringScroll.getInstance()
+    stringInstance.use(StringProgressAnimation)
+    stringInstance.use(StringShowAnimation)
+    stringInstance.use(StringScrollbar)
+    stringInstance.start()
+
+    stringInstance.on('scroll', () => {
+      //console.log('scroll')
+    })
+  </script>
+
+  <style>
+    .progress-block {
+      padding-bottom: 400vh;
+    }
+
+    .progress-block-1 {
+      position: absolute;
+      top: 105vh;
+      left: 10rem;
+      width: 5rem;
+      height: 5rem;
+      background-color: #ff0000;
+      transform: translateX(calc(var(--string-progress) * 30rem));
+    }
+
+    .scrollbar {
+      position: fixed;
+      z-index: 1000;
+      right: 0;
+      top: 0;
+      height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
+      width: 16px;
+    }
+
+    .scrollbar::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(100, 100, 100, 0.15);
+      border-left: 1px solid rgba(0, 0, 0, 0.025);
+      transform: scaleX(0.7);
+      opacity: 0;
+      transition: 0.3s;
+      transform-origin: right center;
+    }
+
+    .scrollbar .thumb {
+      position: absolute;
+      width: 100%;
+      height: var(--height);
+      transform: translateY(var(--position));
+      z-index: 1002;
+      display: flex;
+      justify-content: center;
+    }
+
+    .scrollbar .thumb::after {
+      content: '';
+      position: absolute;
+      width: 11px;
+      height: 100%;
+      border-radius: 6px;
+      background-color: rgba(100, 100, 100, 0.5);
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.07);
+      transform: scaleX(0.7);
+      opacity: 0;
+      transition: 0.3s;
+      transform-origin: right center;
+    }
+
+    .scrollbar.-scroll .thumb::after {
+      opacity: 1;
+    }
+
+    .scrollbar:hover::after,
+    .scrollbar.-touch::after {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+
+    .scrollbar:hover .thumb::after,
+    .scrollbar.-touch .thumb::after {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  </style>
+</body>
+
+</html>

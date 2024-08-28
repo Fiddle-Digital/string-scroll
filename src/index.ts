@@ -1,6 +1,6 @@
 import { EventManager } from "./EventManager"
 import { StringScrollObject } from "./Objects/StringScrollObject"
-import { iStringScroll } from "./ScrollTypes/iStringScroll"
+import { type iStringScroll } from "./ScrollTypes/iStringScroll"
 import { StringScrollDefault } from "./ScrollTypes/StringScrollDefault"
 import { StringScrollDisable } from "./ScrollTypes/StringScrollDisable"
 import { StringScrollSmooth } from "./ScrollTypes/StringScrollSmooth"
@@ -225,6 +225,26 @@ class StringScroll {
   public scrollTo(scroll: number) {
     this.sEn.data.t = scroll
   }
+  
+  public off(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id: string = "") {
+    let object = this.getObject(id)
+    switch (key) {
+      case "scroll":
+        this.onScrollEvents = this.onScrollEvents.filter((h: any) => h !== event)
+        break;
+      case "progress":
+        this.eventManager.off(`progress_${id}`, event)
+        break;
+      case "lerp":
+        this.onScrollLerpEvents = this.onScrollLerpEvents.filter((h: any) => h !== event)
+        break;
+      case "intersection":
+        console.log(`off: intersection_${id}`)
+        this.eventManager.off(`intersection_${id}`, event)
+        break;
+    }
+  }
+  
   public on(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id: string = "") {
     let object = this.getObject(id)
     switch (key) {
@@ -232,17 +252,14 @@ class StringScroll {
         this.onScrollEvents.push(event)
         break;
       case "progress":
-        if(object != undefined){
-          this.eventManager.on(`progress_${object.key}_${id}`, event)
-        }
+        this.eventManager.on(`progress_${id}`, event)
         break;
       case "lerp":
         this.onScrollLerpEvents.push(event)
         break;
       case "intersection":
-        if(object != undefined){
-          this.eventManager.on(`intersection_${object.key}_${id}`, event)
-        }
+        console.log(`on: intersection_${id}`)
+        this.eventManager.on(`intersection_${id}`, event)
         break;
     }
   }
@@ -263,8 +280,6 @@ class StringScroll {
       object.trackedFunction = this.animationGlobalCycle
       object.start()
     }
-   
-
   }
   public start(){
     this.onAnimationFrame()
@@ -323,12 +338,12 @@ class StringScroll {
                   });
                 })
               }
-            });
+            })
             this.onResize()
           }
           if (mutation.addedNodes.length > 0) {
             this.animations.forEach((animation) => {
-              let elements = document.querySelectorAll(`[${animation.key}]:not([data-string-connect]):not([data-string-inited])`)
+              let elements = document.querySelectorAll(`[${animation.key}]:not([data-string-connect]):not([${animation.key}-inited])`)
               elements.forEach(element => {
                 animation.addObject(element)
                 
@@ -358,11 +373,14 @@ class StringScroll {
     });
     //document.documentElement.style.setProperty("--string-lerp", Math.abs(this.sEn.v).toString())
     this.animations.forEach((animation) => {
-      animation.scrollEmit({
-        current: this.sEn.data.c,
-        target: this.sEn.data.t,
-        value: this.sEn.v,
-      })
+      if (animation.status) {
+        animation.scrollEmit({
+          current: this.sEn.data.c,
+          target: this.sEn.data.t,
+          value: this.sEn.v,
+        })
+      }
+      
     });
     
   }

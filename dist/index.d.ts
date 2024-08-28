@@ -51,6 +51,7 @@ declare class StringScroll {
     private constructor();
     static getInstance(): StringScroll;
     scrollTo(scroll: number): void;
+    off(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id?: string): void;
     on(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id?: string): void;
     use(objectClass: typeof StringAnimation | typeof StringTracker | typeof StringScrollbar): void;
     start(): void;
