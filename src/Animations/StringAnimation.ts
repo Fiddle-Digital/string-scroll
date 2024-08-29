@@ -16,7 +16,8 @@ export class StringAnimation{
   set status(value: boolean){
     this._status = value
     if(this._status){
-      this.onScrollEvent = (data: any)=>{
+      this.onScrollEvent = (data: any) => {
+        this.scrollData = data
         this.objectsArray.forEach((object: StringScrollObject) => {
           if(this.onScroll != null){
             if (object.enabled ) {
@@ -38,6 +39,12 @@ export class StringAnimation{
     }
   }
 
+  private scrollData: StringAnimationData = {
+    current:  0,
+    target:  0,
+    value: 0
+  }
+
   private onScrollEvent = (data: any)=>{}
   protected progressKey: string
   protected progressFactorKey: string
@@ -49,7 +56,9 @@ export class StringAnimation{
   protected onUpdate: ((element: StringScrollObject, data: StringAnimationData) => number) | null = null
   protected onScroll: ((element: StringScrollObject, data: StringAnimationData) => number) | null = null
   protected onEnter: (element: StringScrollObject, data: StringAnimationData | null) => void = (element: StringScrollObject, data: StringAnimationData | null)=>{}
-  protected onLeave: (element: StringScrollObject, data: StringAnimationData | null) => void = (element: StringScrollObject, data: StringAnimationData | null)=>{}
+  protected onLeave: (element: StringScrollObject, data: StringAnimationData | null) => void = (element: StringScrollObject, data: StringAnimationData | null) => { }
+  protected onObjectAdded: (object: StringScrollObject, data: StringAnimationData) => void = (object: StringScrollObject, data: StringAnimationData)=>{}
+  protected onResize: (object: StringScrollObject) => void = (object: StringScrollObject)=>{}
   public eventManager: EventManager = new EventManager()
 
   constructor(key: string = "", progressKey: string = "", progressFactorKey: string = "", bufferProgressKey: string = "data-string-progress-value"){
@@ -78,10 +87,12 @@ export class StringAnimation{
       }
     })
   }
-  resize(){
+  resize() {
+    
     let windowHeight = window.innerHeight
     //console.log(Array.from(this.allObjects).length)
     Array.from(this.allObjects).map(([name, value]) => {
+      this.onResize(value)
       value.resize(windowHeight)
     });
   }
@@ -147,10 +158,13 @@ export class StringAnimation{
 
     stringObject.showObserver = obShow
     stringObject.progressObserver = obGl
+
+    this.onObjectAdded(stringObject, this.scrollData)
     
     this.id++
   }
-  public scrollEmit(data: StringAnimationData){
+  public scrollEmit(data: StringAnimationData) {
+    this.scrollData = data
     this.onScrollEvent(data)
   }
 }
