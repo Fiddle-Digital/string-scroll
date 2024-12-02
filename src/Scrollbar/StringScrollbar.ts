@@ -55,6 +55,7 @@ export class StringScrollbar {
         const contentHeight = document.documentElement.scrollHeight;
         const visibleHeight = window.innerHeight;
         this.thumb.style.setProperty('--position', `${(document.documentElement.scrollTop / contentHeight * visibleHeight) + 'px'}`)
+        //this.thumb.style.transform = `translateY(${(document.documentElement.scrollTop / contentHeight * visibleHeight) + 'px'})`;
     }
 
     private addDragFunctionality() {

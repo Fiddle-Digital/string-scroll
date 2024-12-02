@@ -3,41 +3,33 @@ import { StringAnimation } from "./StringAnimation";
 import { StringAnimationData } from "./StringAnimationData";
 
 export class StringParallaxAnimation extends StringAnimation{
+  windowHeight: number = 0
   constructor(){
     super('data-string-parallax', '--string-parallax', 'data-string-parallax')
+    this.windowHeight = window.innerHeight
     this.onScroll = (object: StringScrollObject, data: StringAnimationData)=>{
-      let progress = (object.offsetTop - data.current) * object.factor
-      requestAnimationFrame(()=>{
-        object.el.style.transform = `translateY(${progress}px)`
+      let progress = Math.min(1, Math.max(0, (data.current - object.startPos) / object.differencePos)); 
+      requestAnimationFrame(() => {
+        object.el.style.transform = `translateY(${progress * (object.factor * this.windowHeight) + (object.factor * this.windowHeight * -.5)}px)`
         object.connects.forEach(connect => {
-          connect.el.style.transform = `translateY(${object.progress * object.factor }px)`
+          connect.el.style.transform = `translateY(${progress * object.factor * this.windowHeight}px)`
         });
       })
       return progress
     }
-    this.onResize = (object: StringScrollObject) => {
+
+    if (window.innerWidth > 1080) {
+        this.status = true
+      } else {
+        this.status = false
+      }
+    window.addEventListener('resize', () => {
+      this.windowHeight = window.innerHeight
       if (window.innerWidth > 1080) {
         this.status = true
       } else {
         this.status = false
-        requestAnimationFrame(()=>{
-          object.el.style.transform = `translateY(0px)`
-          object.connects.forEach(connect => {
-            connect.el.style.transform = `translateY(0px)`
-          });
-        })
       }
-    }
-    this.onObjectAdded = (object: StringScrollObject, data: StringAnimationData) => {
-      let progress = (object.offsetTop - data.current) * object.factor
-      if (window.innerHeight > object.top + progress) {
-        requestAnimationFrame(()=>{
-          object.el.style.transform = `translateY(${progress}px)`
-          object.connects.forEach(connect => {
-            connect.el.style.transform = `translateY(${object.progress * object.factor }px)`
-          });
-        })
-      }
-    }
+    })
   }
 }

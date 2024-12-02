@@ -14,6 +14,7 @@ declare class StringScroll {
     private onScrollEvents;
     private onScrollLerpEvents;
     private sf;
+    private cf;
     private f;
     private overflowCurrent;
     private wheelBindFunc;
@@ -27,6 +28,10 @@ declare class StringScroll {
     private scrollbar;
     private animationGlobalCycle;
     private animationCycle;
+    get safariFactor(): number;
+    set safariFactor(value: number);
+    get chromiumFactor(): number;
+    set chromiumFactor(value: number);
     private _enabled;
     get enabled(): boolean;
     set enabled(value: boolean);
@@ -48,11 +53,13 @@ declare class StringScroll {
     set speedDecelerate(speed: number);
     get scrollPosition(): number;
     set scrollPosition(scrollPosition: number);
+    private isUp;
+    private oC;
     private constructor();
     static getInstance(): StringScroll;
     scrollTo(scroll: number): void;
-    off(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id?: string): void;
     on(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id?: string): void;
+    off(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id?: string): void;
     use(objectClass: typeof StringAnimation | typeof StringTracker | typeof StringScrollbar): void;
     start(): void;
     forceUpdateParallax(): void;

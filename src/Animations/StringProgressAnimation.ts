@@ -5,16 +5,9 @@ import { StringAnimationData } from "./StringAnimationData";
 export class StringProgressAnimation extends StringAnimation{
   constructor(){
     super('data-string-progress', '--string-progress', '')
-    this.onScroll = (object: StringScrollObject, data: StringAnimationData)=>{
+    this.onScroll = (object: StringScrollObject, data: StringAnimationData) => {
+      
       return Math.min(1, Math.max(0, (data.current - object.startPos) / object.differencePos)); 
-    }
-    this.onObjectAdded = (object: StringScrollObject, data: StringAnimationData)=>{
-      if (this.onScroll != null && object != null) {
-        let progress = this.onScroll(object, data)
-        object.progress = progress
-        this.eventManager.emit(`progress_${object.id}`, object.progress)
-        object.el.style.setProperty(object.key, progress.toString())
-      }
     }
   }
 }

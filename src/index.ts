@@ -19,10 +19,24 @@ import { StringScrollData } from "./StringScrollData"
 
 let d: any = null
 let w: any = null
+function isSafari(): boolean {
+  let ua = navigator.userAgent.toLowerCase();
+  if (ua.indexOf('safari') != -1) {
+    if (ua.indexOf('chrome') > -1) {
+      return false
+    } else {
+      return true
+    }
+  } else {
+    return false
+  }
+}
 function isTouchDevice() {
   return (('ontouchstart' in window) ||
     (navigator.maxTouchPoints > 0));
 }
+
+
 class StringScroll {
   private static i: StringScroll;
   private wH: number
@@ -32,6 +46,7 @@ class StringScroll {
   private onScrollLerpEvents: Array<any> = new Array<any>()
   
   private sf: number = 1
+  private cf: number = 1
   private f: number = 1
 
   
@@ -56,6 +71,35 @@ class StringScroll {
   }
   private animationCycle = ()=>{}
 
+
+  get safariFactor(){
+    return this.sf
+  }
+  set safariFactor(value: number){
+    this.sf = value
+    if (isSafari()) {
+      this.sEnDesktop.setSpeedAccelerate(this.sA * this.sf)
+      this.sEnDisable.setSpeedAccelerate(this.sA * this.sf)
+      this.sEnMobile.setSpeedAccelerate(this.sA * this.sf)
+      this.sEnDesktop.setSpeedDecelerate(this.sD * this.sf)
+      this.sEnDisable.setSpeedDecelerate(this.sD * this.sf)
+      this.sEnMobile.setSpeedDecelerate(this.sD * this.sf)
+    }
+  }
+  get chromiumFactor(){
+    return this.cf
+  }
+  set chromiumFactor(value: number){
+    this.cf = value
+    if (!isSafari()) {
+      this.sEnDesktop.setSpeedAccelerate(this.sA * this.cf)
+      this.sEnDisable.setSpeedAccelerate(this.sA * this.cf)
+      this.sEnMobile.setSpeedAccelerate(this.sA * this.cf)
+      this.sEnDesktop.setSpeedDecelerate(this.sD * this.cf)
+      this.sEnDisable.setSpeedDecelerate(this.sD * this.cf)
+      this.sEnMobile.setSpeedDecelerate(this.sD * this.cf)
+    }
+  }
 
   private _enabled: boolean = true
   get enabled(){
@@ -139,9 +183,16 @@ class StringScroll {
   }
   set speedAccelerate(speed: number){
     this.sA = speed
-    this.sEnDesktop.sA = speed
-    this.sEnDisable.sA = speed
-    this.sEnMobile.sA = speed
+    if (isSafari()) {
+      this.sEnDesktop.setSpeedAccelerate(this.sA * this.sf)
+      this.sEnDisable.setSpeedAccelerate(this.sA * this.sf)
+      this.sEnMobile.setSpeedAccelerate(this.sA * this.sf)
+    } else {
+      this.sEnDesktop.setSpeedAccelerate(this.sA * this.cf)
+      this.sEnDisable.setSpeedAccelerate(this.sA * this.cf)
+      this.sEnMobile.setSpeedAccelerate(this.sA * this.cf)
+    }
+    
   }
 
   private sD: number = 0.04
@@ -150,9 +201,15 @@ class StringScroll {
   }
   set speedDecelerate(speed: number){
     this.sD = speed
-    this.sEnDesktop.sD = speed
-    this.sEnDisable.sD = speed
-    this.sEnMobile.sD = speed
+    if (isSafari()) {
+      this.sEnDesktop.setSpeedDecelerate(this.sD * this.sf)
+      this.sEnDisable.setSpeedDecelerate(this.sD * this.sf)
+      this.sEnMobile.setSpeedDecelerate(this.sD * this.sf)
+    } else {
+      this.sEnDesktop.setSpeedDecelerate(this.sD * this.cf)
+      this.sEnDisable.setSpeedDecelerate(this.sD * this.cf)
+      this.sEnMobile.setSpeedDecelerate(this.sD * this.cf)
+    }
   }
 
   get scrollPosition(){
@@ -164,6 +221,8 @@ class StringScroll {
     window.scrollTo(0, this.sEn.data.c);
   }
 
+  private isUp: number = 3
+  private oC: number = 0
 
 
   private constructor() {
@@ -182,7 +241,7 @@ class StringScroll {
     w.addEventListener('scroll', this.scrollBindFunc, { passive: false })
     
     document.documentElement.classList.add("string-scroll")
-    document.documentElement.classList.add("string-smoothy")
+    
     const style = document.createElement('style');
     style.id = 'hide-scrollbar-style';
     document.documentElement.style.setProperty("--string-lerp", `0`)
@@ -225,26 +284,6 @@ class StringScroll {
   public scrollTo(scroll: number) {
     this.sEn.data.t = scroll
   }
-  
-  public off(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id: string = "") {
-    let object = this.getObject(id)
-    switch (key) {
-      case "scroll":
-        this.onScrollEvents = this.onScrollEvents.filter((h: any) => h !== event)
-        break;
-      case "progress":
-        this.eventManager.off(`progress_${id}`, event)
-        break;
-      case "lerp":
-        this.onScrollLerpEvents = this.onScrollLerpEvents.filter((h: any) => h !== event)
-        break;
-      case "intersection":
-        console.log(`off: intersection_${id}`)
-        this.eventManager.off(`intersection_${id}`, event)
-        break;
-    }
-  }
-  
   public on(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id: string = "") {
     let object = this.getObject(id)
     switch (key) {
@@ -252,14 +291,38 @@ class StringScroll {
         this.onScrollEvents.push(event)
         break;
       case "progress":
-        this.eventManager.on(`progress_${id}`, event)
+        if(object != undefined){
+          this.eventManager.on(`progress_${object.key}_${id}`, event)
+        }
         break;
       case "lerp":
         this.onScrollLerpEvents.push(event)
         break;
       case "intersection":
-        console.log(`on: intersection_${id}`)
-        this.eventManager.on(`intersection_${id}`, event)
+        if(object != undefined){
+          this.eventManager.on(`intersection_${object.key}_${id}`, event)
+        }
+        break;
+    }
+  }
+  public off(key: "scroll" | "progress" | "intersection" | "lerp", event: any, id: string = "") {
+    let object = this.getObject(id)
+    switch (key) {
+      case "scroll":
+        this.onScrollEvents = this.onScrollEvents.filter((h: any) => h !== event)
+        break;
+      case "progress":
+        if(object != undefined){
+          this.eventManager.off(`progress_${object.key}_${id}`, event)
+        }
+        break;
+      case "lerp":
+        this.onScrollLerpEvents = this.onScrollLerpEvents.filter((h: any) => h !== event)
+        break;
+      case "intersection":
+        if(object != undefined){
+          this.eventManager.off(`intersection_${object.key}_${id}`, event)
+        }
         break;
     }
   }
@@ -280,6 +343,8 @@ class StringScroll {
       object.trackedFunction = this.animationGlobalCycle
       object.start()
     }
+   
+
   }
   public start(){
     this.onAnimationFrame()
@@ -327,9 +392,17 @@ class StringScroll {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === "childList") {
+          let isResizing = false
           if (mutation.removedNodes.length > 0) {
+            
             mutation.removedNodes.forEach(removedNode => {
+              
               if (removedNode.nodeType === Node.ELEMENT_NODE) {
+                if ((removedNode as Element).getAttribute('data-string-fixed') == null) {
+                  isResizing = true
+                } else {
+                  
+                }
                 this.animations.forEach((animation) => {
                   Array.from(animation.allObjects).map(([name, value]) => {
                     if(document.body.contains(value.el) == false){
@@ -339,17 +412,30 @@ class StringScroll {
                 })
               }
             })
-            this.onResize()
+            if (isResizing) {
+              this.onResize()
+            }
           }
           if (mutation.addedNodes.length > 0) {
+            mutation.addedNodes.forEach(addedNode => {
+              if (addedNode.nodeType === Node.ELEMENT_NODE) {
+                if ((addedNode as Element).getAttribute('data-string-fixed') == null) {
+                  isResizing = true
+                } else {
+                }
+              }
+            })
+
+            
             this.animations.forEach((animation) => {
               let elements = document.querySelectorAll(`[${animation.key}]:not([data-string-connect]):not([${animation.key}-inited])`)
               elements.forEach(element => {
                 animation.addObject(element)
-                
               });
             });
-            this.onResize()
+            if (isResizing) {
+              this.onResize()
+            }
           }
           
         }
@@ -364,6 +450,7 @@ class StringScroll {
     
   }
   private onScroll(e: Event) {
+    
     this.sEn.onScroll(e)
     this.onScrollEvents.forEach(event => {
       event(this.sEn.data.c)
@@ -371,30 +458,39 @@ class StringScroll {
     this.onScrollLerpEvents.forEach(event => {
       event(this.sEn.v)
     });
+
+    
+    if (this.sEn.v != 0 && this.isUp != 1 && this.oC < this.sEn.data.c) {
+      this.isUp = 1
+      document.documentElement.classList.add("-scroll-down")
+      document.documentElement.classList.remove("-scroll-up")
+    } 
+    if (this.sEn.v != 0 && this.isUp != 2 && this.oC > this.sEn.data.c) {
+      this.isUp = 2
+      document.documentElement.classList.add("-scroll-up")
+      document.documentElement.classList.remove("-scroll-down")
+    }
+    if (this.sEn.v == 0 && this.isUp!=3) {
+      this.isUp = 3
+      document.documentElement.classList.remove("-scroll-up")
+      document.documentElement.classList.remove("-scroll-down")
+    }
+    
+    
     //document.documentElement.style.setProperty("--string-lerp", Math.abs(this.sEn.v).toString())
     this.animations.forEach((animation) => {
-      if (animation.status) {
-        animation.scrollEmit({
-          current: this.sEn.data.c,
-          target: this.sEn.data.t,
-          value: this.sEn.v,
-        })
-      }
-      
+      animation.scrollEmit({
+        current: this.sEn.data.c,
+        target: this.sEn.data.t,
+        value: this.sEn.v,
+      })
     });
+    this.oC = this.sEn.data.c
     
   }
   private onAnimationFrame() {
     this.animationCycle = () => {
       this.sEn.onAnimationFrame()
-
-      // this.animations.forEach((animation) => {
-      //   animation.updateEmit({
-      //     current: this.sEn.data.c,
-      //     target: this.sEn.data.t,
-      //     value: this.sEn.v,
-      //   })
-      // });
       requestAnimationFrame(this.animationGlobalCycle);
     }
     requestAnimationFrame(this.animationGlobalCycle);
@@ -410,17 +506,27 @@ class StringScroll {
     } else {
       this.scrollMode = this.dMode
     }
-    if (this.wW != w.innerWidth) {
+    if (this.wW != w.innerWidth || w.innerWidth > 1024) {
       this.wW = w.innerWidth
       this.wH = w.innerHeight
+    } 
+    if (this.wW != w.innerWidth || w.innerWidth > 1024) {
+      let b = d.body,
+      h = d.documentElement
+      let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
+        h.clientHeight, h.scrollHeight, h.offsetHeight)
+      this.sEn.data.bS = dHeight - this.wH
+
+      this.animations.forEach((animation) => {
+        animation.scrollEmit({
+          current: this.sEn.data.c,
+          target: this.sEn.data.t,
+          value: this.sEn.v,
+        })
+      });
     }
 
-    let b = d.body,
-      h = d.documentElement
-    let dHeight = Math.max(b.scrollHeight, b.offsetHeight,
-      h.clientHeight, h.scrollHeight, h.offsetHeight)
-    this.sEn.data.bS = dHeight - this.wH
-
+    
   }
 }
 

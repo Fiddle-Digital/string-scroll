@@ -7,7 +7,6 @@ export declare class StringAnimation {
     protected _status: boolean;
     get status(): boolean;
     set status(value: boolean);
-    private scrollData;
     private onScrollEvent;
     protected progressKey: string;
     protected progressFactorKey: string;
@@ -20,8 +19,6 @@ export declare class StringAnimation {
     protected onScroll: ((element: StringScrollObject, data: StringAnimationData) => number) | null;
     protected onEnter: (element: StringScrollObject, data: StringAnimationData | null) => void;
     protected onLeave: (element: StringScrollObject, data: StringAnimationData | null) => void;
-    protected onObjectAdded: (object: StringScrollObject, data: StringAnimationData) => void;
-    protected onResize: (object: StringScrollObject) => void;
     eventManager: EventManager;
     constructor(key?: string, progressKey?: string, progressFactorKey?: string, bufferProgressKey?: string);
     get(id: string): StringScrollObject | undefined;

@@ -34,6 +34,7 @@ export class StringScrollObject{
     let r = gbcl(element)
     let wH = window.innerHeight
     let oA = attr(element, `data-string-offset`)
+
     let o = oA == null ? [0, 0] : StringParse.getInstance().parseOffset(element, oA, wH)
     let rH = r.height
     this.el= element
@@ -47,7 +48,8 @@ export class StringScrollObject{
     this.oBottom= o[1]
     this.start= attr(element, `data-string-start`, 1)
     this.end= attr(element, `data-string-end`, 1)
-    this.id= attr(element, `data-string-id`)
+    this.id = attr(element, `data-string-id`)
+    
     this.enabled= attr(element, `data-string-enabled`) == null ? true : false
     this.startPos= 1
     this.endPos= 1
@@ -84,8 +86,11 @@ export class StringScrollObject{
     if (org != null) {
       this.el.style.transformOrigin = StringParse.getInstance().parseOrigin(org)
     }
+
+    
+    
   }
-  resize(windowHeight: number){
+  resize(windowHeight: number) {
     let element = this.el
     let r = gbcl(element)
     let rH = r.height

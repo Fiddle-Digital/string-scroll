@@ -1,18 +1,10 @@
 export class EventManager{
   private events: Map<string, Array<Function>> = new Map<string, Array<Function>>()
-  public on(id: string, event: Function){
+  on(id: string, event: Function){
     if ( this.events.has(id) == false) {   
       this.events.set(id, [])
     }
     this.events.get(id)?.push(event)
-  }
-  off(event: string, handler: any) {
-    if (this.events.has(event)) {
-      let array = this.events.get(event)
-      if(array != null){
-        this.events.set(event, array.filter((h: any) => h !== handler));
-      }
-    }
   }
   public has(id: string) {
     return this.events.has(id)
@@ -22,6 +14,12 @@ export class EventManager{
       this.events.get(id)?.forEach((event: any) => {
         event(value)
       });
+    }
+  }
+  public off(id: string, event: Function) {
+    let ea = this.events.get(id)
+    if (ea!=null) {
+      this.events.set(id, ea.filter((h: any) => h !== event))
     }
   }
 }

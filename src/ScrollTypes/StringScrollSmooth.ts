@@ -28,7 +28,7 @@ export class StringScrollSmooth implements iStringScroll {
   }
   public onAnimationFrame() {
     this.v = ((this.data.t - this.data.c) * this.sC)
-    if (this.v > 0.15 || this.v < -0.15) {
+    if (this.v > 0.01 || this.v < -0.01) {
       this.data.c = this.data.c +this.v;
       this.isProg = true
       document.documentElement.scrollTop = this.data.c
